@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17130e">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; base-uri 'none'; form-action 'none'">
+<title>PiMusic — сервер</title>
+<link rel="stylesheet" href="setup.css">
+</head>
+<body>
+<main>
+  <svg class="logo" viewBox="0 0 512 512" aria-hidden="true">
+    <path id="cookie" fill="#f5a524"/>
+    <g fill="#17130e" id="bars"></g>
+  </svg>
+  <h1>PiMusic</h1>
+  <p>Укажите адрес сервера PiMusic. Его можно поменять позже в меню приложения.</p>
+  <div class="banner" id="banner" role="alert">Не удалось открыть сервер. Проверьте адрес и подключение к сети.</div>
+  <form class="card" id="f" novalidate>
+    <label for="url">Адрес сервера</label>
+    <input id="url" type="url" inputmode="url" autocomplete="url" spellcheck="false" autocapitalize="off" required>
+    <div class="hint">Например, https://music.example.com/app/ или адрес в локальной сети: http://192.168.1.10:8097/app/</div>
+    <div class="err" id="err" aria-live="polite"></div>
+    <div class="row">
+      <button class="filled" type="submit" id="go">Подключиться</button>
+      <button class="text" type="button" id="def">По умолчанию</button>
+    </div>
+  </form>
+</main>
+<script src="setup.js"></script>
+</body>
+</html>

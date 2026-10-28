@@ -1,0 +1,62 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PiMusic",
+  "mainBinaryName": "PiMusic",
+  "version": "../package.json",
+  "identifier": "io.github.ikriu.pimusic",
+  "build": {
+    "frontendDist": "../dist-ui"
+  },
+  "app": {
+    "windows": [],
+    "withGlobalTauri": false,
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http://pimusic.localhost; media-src 'self' blob: data: http://pimusic.localhost https://*.dzcdn.net; connect-src 'self' ipc: http://ipc.localhost http://pimusic.localhost; worker-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "createUpdaterArtifacts": true,
+    "publisher": "PiMusic",
+    "copyright": "PiMusic",
+    "category": "Music",
+    "shortDescription": "PiMusic — личный стриминг",
+    "longDescription": "Оболочка Windows для веб-приложения PiMusic: трей, медиаклавиши, автозапуск.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "Russian",
+          "English"
+        ],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico",
+        "startMenuFolder": "PiMusic"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "PIMUSIC_UPDATER_PUBKEY",
+      "endpoints": [
+        "https://github.com/iKriu/pimusic-server/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

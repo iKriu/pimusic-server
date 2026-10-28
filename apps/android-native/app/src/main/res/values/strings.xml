@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PiMusic</string>
+    <string name="channel_playback">Воспроизведение</string>
+    <string name="channel_downloads">Скачивание</string>
+    <string name="channel_downloads_desc">Скачивание треков для прослушивания без сети</string>
+</resources>

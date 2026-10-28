@@ -1,0 +1,7117 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "PiMusic API",
+  "version": "1",
+  "description": "API домашнего музыкального сервиса PiMusic: поиск и загрузка музыки, медиатека, плейлисты, поток, тексты, «Моя Волна», радио, свои файлы. Тот же API использует официальный клиент (Mini App, Windows, Android). Руководство — docs/api/README.md в репозитории."
+ },
+ "servers": [
+  {
+   "url": "https://music.example.com"
+  }
+ ],
+ "security": [
+  {
+   "bearer": []
+  },
+  {
+   "telegramInitData": []
+  }
+ ],
+ "tags": [
+  {
+   "name": "Сервис"
+  },
+  {
+   "name": "Вход"
+  },
+  {
+   "name": "Поиск"
+  },
+  {
+   "name": "Загрузка"
+  },
+  {
+   "name": "Медиатека"
+  },
+  {
+   "name": "Воспроизведение"
+  },
+  {
+   "name": "Волна и радио"
+  },
+  {
+   "name": "Плейлисты"
+  },
+  {
+   "name": "Файлы и импорт"
+  },
+  {
+   "name": "Настройки"
+  },
+  {
+   "name": "Администратор"
+  },
+  {
+   "name": "Обновления"
+  }
+ ],
+ "paths": {
+  "/api/info": {
+   "get": {
+    "tags": [
+     "Сервис"
+    ],
+    "summary": "Версия API, способы входа, лимиты",
+    "operationId": "getInfo",
+    "description": "Первый запрос клиента: что умеет сервер. api_version растёт только при несовместимых изменениях.",
+    "security": [],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "name": {
+           "type": "string"
+          },
+          "api_version": {
+           "type": "integer"
+          },
+          "openapi": {
+           "type": "string"
+          },
+          "auth": {
+           "type": "object",
+           "properties": {
+            "bot": {
+             "anyOf": [
+              {
+               "type": "string"
+              },
+              {
+               "type": "null"
+              }
+             ]
+            },
+            "login_widget": {
+             "type": "boolean"
+            },
+            "methods": {
+             "type": "array",
+             "items": {
+              "type": "string"
+             }
+            },
+            "platforms": {
+             "type": "array",
+             "items": {
+              "type": "string"
+             }
+            },
+            "max_devices": {
+             "type": "integer"
+            },
+            "login_ttl": {
+             "type": "integer"
+            }
+           }
+          },
+          "limits": {
+           "type": "object",
+           "additionalProperties": {
+            "type": "integer"
+           }
+          },
+          "features": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/openapi.json": {
+   "get": {
+    "tags": [
+     "Сервис"
+    ],
+    "summary": "Это описание (OpenAPI 3.1)",
+    "operationId": "getOpenapi",
+    "security": [],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/me": {
+   "get": {
+    "tags": [
+     "Сервис"
+    ],
+    "summary": "Текущий пользователь",
+    "operationId": "getMe",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "login": {
+           "type": "string"
+          },
+          "tracks": {
+           "type": "integer"
+          },
+          "stream_url": {
+           "type": "string",
+           "description": "Живой поток «Моей Волны» (mp3; секрет в пути — не показывать посторонним)"
+          },
+          "jellyfin_url": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "is_admin": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/config": {
+   "get": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Настройки входа",
+    "operationId": "getAuthConfig",
+    "security": [],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "bot": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "login_widget": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/start": {
+   "post": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Начать вход через бота",
+    "operationId": "authStart",
+    "description": "Показать code крупно и открыть link (или QR с ним). В боте пользователь выбирает этот код. Затем опрашивать /api/auth/poll раз в 2 с, не дольше expires_in. 10 запросов за 10 мин на IP.",
+    "security": [],
+    "requestBody": {
+     "required": false,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "device": {
+          "type": "string",
+          "description": "Имя устройства, до 64 символов"
+         },
+         "platform": {
+          "type": "string",
+          "enum": [
+           "web",
+           "pwa",
+           "windows",
+           "android",
+           "ios",
+           "linux",
+           "macos"
+          ]
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "nonce": {
+           "type": "string"
+          },
+          "code": {
+           "type": "string",
+           "description": "4 цифры"
+          },
+          "link": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "expires_in": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "rate_limited",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "busy",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/poll": {
+   "post": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Опрос подтверждения входа",
+    "operationId": "authPoll",
+    "description": "pending — ждать; denied — отказ; expired — истёк или уже использован; too_many_devices — уже 20 устройств (nonce не тратится); ok — token (выдаётся один раз) и login.",
+    "security": [],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "nonce": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "nonce"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "status": {
+           "type": "string",
+           "enum": [
+            "pending",
+            "denied",
+            "expired",
+            "too_many_devices",
+            "ok"
+           ]
+          },
+          "token": {
+           "type": "string"
+          },
+          "login": {
+           "type": "string"
+          },
+          "message": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "status"
+         ]
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_nonce",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "rate_limited",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/telegram": {
+   "post": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Вход через Telegram Login Widget",
+    "operationId": "authWidget",
+    "description": "Поля виджета как есть (id, first_name, auth_date, hash, …) + device, platform. auth_date не старше 5 мин, повтор тех же данных — 401. Только если /api/auth/config вернул login_widget: true.",
+    "security": [],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "additionalProperties": true
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "status": {
+           "type": "string"
+          },
+          "token": {
+           "type": "string"
+          },
+          "login": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "unauthorized",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "not_registered",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "disabled",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "too_many_devices",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "rate_limited",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/logout": {
+   "post": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Выйти",
+    "operationId": "authLogout",
+    "description": "Отзывает токен этого устройства; {\"all\": true} — все токены пользователя, включая этот.",
+    "requestBody": {
+     "required": false,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "all": {
+          "type": "boolean"
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "revoked": {
+           "anyOf": [
+            {
+             "type": "boolean"
+            },
+            {
+             "type": "integer"
+            }
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/devices": {
+   "get": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Устройства пользователя",
+    "operationId": "listDevices",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Device"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/devices/{did}/revoke": {
+   "post": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Отозвать устройство",
+    "operationId": "revokeDevice",
+    "parameters": [
+     {
+      "name": "did",
+      "in": "path",
+      "required": true,
+      "description": "id устройства",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/devices/revoke-all": {
+   "post": {
+    "tags": [
+     "Вход"
+    ],
+    "summary": "Выйти на всех устройствах",
+    "operationId": "revokeAllDevices",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "revoked": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/search": {
+   "get": {
+    "tags": [
+     "Поиск"
+    ],
+    "summary": "Поиск в каталоге",
+    "operationId": "search",
+    "description": "Результат хранится на сервере под token — им пользуются /api/album и /api/download.",
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": true,
+      "description": "Запрос, до 200 символов",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "token": {
+           "type": "string"
+          },
+          "artist": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "artist_id": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "picture": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "fans": {
+           "anyOf": [
+            {
+             "type": "integer"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "tracks": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchTrack"
+           }
+          },
+          "albums": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchAlbum"
+           }
+          },
+          "artists": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchArtist"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "empty_query",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/album": {
+   "get": {
+    "tags": [
+     "Поиск"
+    ],
+    "summary": "Треки альбома из результата поиска",
+    "operationId": "searchAlbum",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "query",
+      "required": true,
+      "description": "token поиска",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "i",
+      "in": "query",
+      "required": true,
+      "description": "Индекс альбома",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "i": {
+           "type": "integer"
+          },
+          "title": {
+           "type": "string"
+          },
+          "artist": {
+           "type": "string"
+          },
+          "year": {
+           "anyOf": [
+            {
+             "type": "integer"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "tracks": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchTrack"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_index",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden (чужой token)",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "expired",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/catalog/album": {
+   "get": {
+    "tags": [
+     "Поиск"
+    ],
+    "summary": "Страница альбома каталога",
+    "operationId": "catalogAlbum",
+    "parameters": [
+     {
+      "name": "id",
+      "in": "query",
+      "required": true,
+      "description": "id альбома",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "token": {
+           "type": "string"
+          },
+          "id": {
+           "type": "string"
+          },
+          "title": {
+           "type": "string"
+          },
+          "artist": {
+           "type": "string"
+          },
+          "artist_id": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "year": {
+           "anyOf": [
+            {
+             "type": "integer"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "kind": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "cover": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "tracks": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchTrack"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "502": {
+      "description": "catalog_failed",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/catalog/artist": {
+   "get": {
+    "tags": [
+     "Поиск"
+    ],
+    "summary": "Страница исполнителя каталога",
+    "operationId": "catalogArtist",
+    "parameters": [
+     {
+      "name": "id",
+      "in": "query",
+      "required": true,
+      "description": "id исполнителя",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "token": {
+           "type": "string"
+          },
+          "id": {
+           "type": "string"
+          },
+          "name": {
+           "type": "string"
+          },
+          "picture": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "fans": {
+           "anyOf": [
+            {
+             "type": "integer"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "tracks": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchTrack"
+           }
+          },
+          "albums": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchAlbum"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "502": {
+      "description": "catalog_failed",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/catalog/artist/tracks": {
+   "get": {
+    "tags": [
+     "Поиск"
+    ],
+    "summary": "Все треки исполнителя",
+    "operationId": "catalogArtistTracks",
+    "parameters": [
+     {
+      "name": "id",
+      "in": "query",
+      "required": true,
+      "description": "id исполнителя",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "token": {
+           "type": "string"
+          },
+          "id": {
+           "type": "string"
+          },
+          "name": {
+           "type": "string"
+          },
+          "albums": {
+           "type": "integer"
+          },
+          "capped": {
+           "type": "boolean",
+           "description": "Список обрезан"
+          },
+          "tracks": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/SearchTrack"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "502": {
+      "description": "catalog_failed",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/download": {
+   "post": {
+    "tags": [
+     "Загрузка"
+    ],
+    "summary": "Скачать из результата поиска/каталога",
+    "operationId": "download",
+    "description": "Ставит в очередь; ход — /api/activity. playlist_id — заодно добавлять в плейлист по порядку.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "allOf": [
+         {
+          "type": "object",
+          "properties": {
+           "token": {
+            "type": "string",
+            "description": "token из ответа поиска/каталога (живёт ограниченное время → 404 expired)"
+           },
+           "kind": {
+            "type": "string",
+            "enum": [
+             "track",
+             "all",
+             "album",
+             "tracks",
+             "album_track"
+            ],
+            "description": "track — tracks[i]; all — все tracks; album — albums[i] целиком; tracks — индексы idx; album_track — трек j альбома i"
+           },
+           "i": {
+            "type": "integer"
+           },
+           "j": {
+            "type": "integer"
+           },
+           "idx": {
+            "type": "array",
+            "items": {
+             "type": "integer"
+            },
+            "description": "Индексы tracks для kind=tracks (до 500)"
+           }
+          },
+          "required": [
+           "token",
+           "kind"
+          ]
+         },
+         {
+          "type": "object",
+          "properties": {
+           "playlist_id": {
+            "type": "integer"
+           }
+          }
+         }
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "queued": {
+           "type": "integer"
+          },
+          "title": {
+           "type": "string"
+          },
+          "playlist": {
+           "type": "object",
+           "properties": {
+            "id": {
+             "type": "integer"
+            },
+            "name": {
+             "type": "string"
+            },
+            "added_now": {
+             "type": "integer"
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_kind / bad_index",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "expired / nothing_to_download / playlist_not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "quota",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "507": {
+      "description": "disk_full",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/download/link": {
+   "post": {
+    "tags": [
+     "Загрузка"
+    ],
+    "summary": "Скачать по ссылке",
+    "operationId": "downloadLink",
+    "description": "Spotify / YouTube / SoundCloud / Bandcamp / Яндекс Музыка… — как ссылка, присланная боту. Ссылка на плейлист создаёт плейлист.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "url": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "url"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "queued": {
+           "type": "integer"
+          },
+          "title": {
+           "type": "string"
+          },
+          "kind": {
+           "type": "string"
+          },
+          "note": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "playlist": {
+           "anyOf": [
+            {
+             "type": "object",
+             "properties": {
+              "id": {
+               "type": "integer"
+              },
+              "name": {
+               "type": "string"
+              }
+             }
+            },
+            {
+             "type": "null"
+            }
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_url",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "nothing_to_download",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "resolve_error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "quota",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "502": {
+      "description": "resolve_failed",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "507": {
+      "description": "disk_full",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/activity": {
+   "get": {
+    "tags": [
+     "Загрузка"
+    ],
+    "summary": "Что качается и журнал",
+    "operationId": "getActivity",
+    "description": "Опрашивать раз в 2–5 с, пока есть active/jobs. log — последние 50 событий, новые первыми.",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "active": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          },
+          "active_items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "text": {
+              "type": "string"
+             },
+             "artist": {
+              "anyOf": [
+               {
+                "type": "string"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "title": {
+              "anyOf": [
+               {
+                "type": "string"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "track_id": {
+              "anyOf": [
+               {
+                "type": "integer"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "progress": {
+              "anyOf": [
+               {
+                "type": "string"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             }
+            }
+           }
+          },
+          "jobs": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "title": {
+              "type": "string"
+             },
+             "total": {
+              "type": "integer"
+             },
+             "started": {
+              "type": "integer"
+             }
+            }
+           }
+          },
+          "log": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "ts": {
+              "type": "integer"
+             },
+             "text": {
+              "type": "string"
+             }
+            }
+           }
+          },
+          "queue": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Треки медиатеки (страница)",
+    "operationId": "getLibrary",
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "description": "Поиск по исполнителю, названию, альбому (без регистра, ё = е), до 200 символов.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "genre",
+      "in": "query",
+      "required": false,
+      "description": "Точное имя жанра (без учёта регистра); трек подходит, если это любой из его жанров.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "order",
+      "in": "query",
+      "required": false,
+      "description": "asc / desc. По умолчанию added и year — по убыванию, остальное — по возрастанию.",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "asc",
+        "desc"
+       ]
+      }
+     },
+     {
+      "name": "seed",
+      "in": "query",
+      "required": false,
+      "description": "Для sort=random: одно значение — один порядок (нужно для подгрузки страниц).",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "description": "По умолчанию added",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "added",
+        "title",
+        "artist",
+        "album",
+        "genre",
+        "year",
+        "duration",
+        "random"
+       ]
+      }
+     },
+     {
+      "name": "offset",
+      "in": "query",
+      "required": false,
+      "description": "С какого",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "description": "1…500, по умолчанию 50",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "total": {
+           "type": "integer",
+           "description": "Найдено после фильтра"
+          },
+          "library_total": {
+           "type": "integer"
+          },
+          "offset": {
+           "type": "integer"
+          },
+          "limit": {
+           "type": "integer"
+          },
+          "sort": {
+           "type": "string"
+          },
+          "items": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Track"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_sort / bad_order",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/play": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Очередь «Слушать»/«Перемешать» по текущему виду",
+    "operationId": "libraryPlay",
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "description": "Поиск по исполнителю, названию, альбому (без регистра, ё = е), до 200 символов.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "genre",
+      "in": "query",
+      "required": false,
+      "description": "Точное имя жанра (без учёта регистра); трек подходит, если это любой из его жанров.",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "order",
+      "in": "query",
+      "required": false,
+      "description": "asc / desc. По умолчанию added и year — по убыванию, остальное — по возрастанию.",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "asc",
+        "desc"
+       ]
+      }
+     },
+     {
+      "name": "seed",
+      "in": "query",
+      "required": false,
+      "description": "Для sort=random: одно значение — один порядок (нужно для подгрузки страниц).",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "description": "По умолчанию artist",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "added",
+        "title",
+        "artist",
+        "album",
+        "genre",
+        "year",
+        "duration",
+        "random"
+       ]
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "description": "До 3000, по умолчанию 1000",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "total": {
+           "type": "integer"
+          },
+          "sort": {
+           "type": "string"
+          },
+          "items": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Track"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_sort / bad_order",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/genres": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Жанры медиатеки",
+    "operationId": "libraryGenres",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "name": {
+              "type": "string"
+             },
+             "count": {
+              "type": "integer"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/artists": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Исполнители медиатеки",
+    "operationId": "libraryArtists",
+    "parameters": [
+     {
+      "name": "genre",
+      "in": "query",
+      "required": false,
+      "description": "Фильтр по жанру",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "description": "По умолчанию name",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "name",
+        "count",
+        "added",
+        "year"
+       ]
+      }
+     },
+     {
+      "name": "order",
+      "in": "query",
+      "required": false,
+      "description": "asc / desc. По умолчанию added и year — по убыванию, остальное — по возрастанию.",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "asc",
+        "desc"
+       ]
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "key": {
+              "type": "string"
+             },
+             "name": {
+              "type": "string"
+             },
+             "count": {
+              "type": "integer"
+             },
+             "year": {
+              "anyOf": [
+               {
+                "type": "integer"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "added_at": {
+              "anyOf": [
+               {
+                "type": "integer"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "image": {
+              "anyOf": [
+               {
+                "type": "string"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_sort / bad_order",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/albums": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Альбомы медиатеки",
+    "operationId": "libraryAlbums",
+    "parameters": [
+     {
+      "name": "genre",
+      "in": "query",
+      "required": false,
+      "description": "Фильтр по жанру",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "description": "По умолчанию name",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "name",
+        "count",
+        "added",
+        "year"
+       ]
+      }
+     },
+     {
+      "name": "order",
+      "in": "query",
+      "required": false,
+      "description": "asc / desc. По умолчанию added и year — по убыванию, остальное — по возрастанию.",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "asc",
+        "desc"
+       ]
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "artist_key": {
+              "type": "string"
+             },
+             "key": {
+              "type": "string"
+             },
+             "title": {
+              "type": "string"
+             },
+             "artist": {
+              "type": "string"
+             },
+             "count": {
+              "type": "integer"
+             },
+             "year": {
+              "anyOf": [
+               {
+                "type": "integer"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "added_at": {
+              "anyOf": [
+               {
+                "type": "integer"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "cover": {
+              "anyOf": [
+               {
+                "type": "string"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_sort / bad_order",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/artist": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Исполнитель медиатеки (по альбомам)",
+    "operationId": "libraryArtist",
+    "parameters": [
+     {
+      "name": "a",
+      "in": "query",
+      "required": true,
+      "description": "artist_key",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "key": {
+           "type": "string"
+          },
+          "name": {
+           "type": "string"
+          },
+          "count": {
+           "type": "integer"
+          },
+          "image": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "albums": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "key": {
+              "type": "string"
+             },
+             "title": {
+              "type": "string"
+             },
+             "cover": {
+              "anyOf": [
+               {
+                "type": "string"
+               },
+               {
+                "type": "null"
+               }
+              ]
+             },
+             "tracks": {
+              "type": "array",
+              "items": {
+               "$ref": "#/components/schemas/Track"
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_artist",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/album": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Альбом медиатеки",
+    "operationId": "libraryAlbum",
+    "parameters": [
+     {
+      "name": "a",
+      "in": "query",
+      "required": true,
+      "description": "artist_key",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "b",
+      "in": "query",
+      "required": true,
+      "description": "album_key",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "allOf": [
+          {
+           "type": "object",
+           "properties": {
+            "key": {
+             "type": "string"
+            },
+            "title": {
+             "type": "string"
+            },
+            "cover": {
+             "anyOf": [
+              {
+               "type": "string"
+              },
+              {
+               "type": "null"
+              }
+             ]
+            },
+            "tracks": {
+             "type": "array",
+             "items": {
+              "$ref": "#/components/schemas/Track"
+             }
+            }
+           }
+          },
+          {
+           "type": "object",
+           "properties": {
+            "artist_key": {
+             "type": "string"
+            },
+            "artist": {
+             "type": "string"
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_album",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/keys": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Ключи медиатеки (✓ в поиске)",
+    "operationId": "libraryKeys",
+    "description": "Сравнивайте key и isrc треков поиска с этими множествами.",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "keys": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          },
+          "isrc": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/tracks": {
+   "get": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Треки по id (свежие ссылки)",
+    "operationId": "getTracks",
+    "description": "Подписанные stream/cover истекают — обновляйте ими очередь. Недоступные id пропускаются.",
+    "parameters": [
+     {
+      "name": "ids",
+      "in": "query",
+      "required": true,
+      "description": "id через запятую, до 500",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Track"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "too_many / bad_ids",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/delete": {
+   "post": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Удалить трек из медиатеки",
+    "operationId": "deleteTrack",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "track_id": {
+          "type": "integer"
+         }
+        },
+        "required": [
+         "track_id"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "text": {
+           "type": "string"
+          },
+          "track_id": {
+           "type": "integer"
+          },
+          "gone": {
+           "type": "boolean",
+           "description": "Недоступен совсем — убрать из очереди"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_track_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/library/delete": {
+   "post": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Удалить пачку из медиатеки",
+    "operationId": "deleteTracks",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "track_ids": {
+          "type": "array",
+          "items": {
+           "type": "integer"
+          }
+         }
+        },
+        "required": [
+         "track_ids"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "deleted": {
+           "type": "integer"
+          },
+          "skipped": {
+           "type": "integer"
+          },
+          "deleted_ids": {
+           "type": "array",
+           "items": {
+            "type": "integer"
+           }
+          },
+          "gone_ids": {
+           "type": "array",
+           "items": {
+            "type": "integer"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_track_ids",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/tracks/{tid}/redownload": {
+   "post": {
+    "tags": [
+     "Медиатека"
+    ],
+    "summary": "Перекачать трек",
+    "operationId": "redownloadTrack",
+    "description": "Новый файл после проверки заменит старый у всех держателей; ход — /api/activity. 10 в час.",
+    "parameters": [
+     {
+      "name": "tid",
+      "in": "path",
+      "required": true,
+      "description": "id трека",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "text": {
+           "type": "string"
+          },
+          "job": {
+           "type": "object",
+           "properties": {
+            "title": {
+             "type": "string"
+            },
+            "track_id": {
+             "type": "integer"
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "busy",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "rate_limited / quota",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "507": {
+      "description": "disk_full",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/stream/{track_id}": {
+   "get": {
+    "tags": [
+     "Воспроизведение"
+    ],
+    "summary": "Файл трека",
+    "operationId": "stream",
+    "description": "Берите готовую ссылку из поля stream трека, не собирайте сами. Range/206 поддерживается. Любая ошибка (истекла, нет доступа) — 404: обновите ссылку через /api/tracks.",
+    "security": [],
+    "parameters": [
+     {
+      "name": "track_id",
+      "in": "path",
+      "required": true,
+      "description": "id трека",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "u",
+      "in": "query",
+      "required": true,
+      "description": "логин",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "e",
+      "in": "query",
+      "required": true,
+      "description": "срок (unix)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "s",
+      "in": "query",
+      "required": true,
+      "description": "подпись",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "audio/mpeg": {
+        "schema": {
+         "type": "string",
+         "format": "binary"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Нет или истекла",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cover/{track_id}": {
+   "get": {
+    "tags": [
+     "Воспроизведение"
+    ],
+    "summary": "Обложка трека",
+    "operationId": "cover",
+    "description": "Из поля cover. JPEG, ссылка на 24 ч.",
+    "security": [],
+    "parameters": [
+     {
+      "name": "track_id",
+      "in": "path",
+      "required": true,
+      "description": "id трека",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "u",
+      "in": "query",
+      "required": true,
+      "description": "логин",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "e",
+      "in": "query",
+      "required": true,
+      "description": "срок (unix)",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "s",
+      "in": "query",
+      "required": true,
+      "description": "подпись",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "image/jpeg": {
+        "schema": {
+         "type": "string",
+         "format": "binary"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Нет или истекла",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/artist-image": {
+   "get": {
+    "tags": [
+     "Воспроизведение"
+    ],
+    "summary": "Фото исполнителя",
+    "operationId": "artistImage",
+    "description": "Из поля image исполнителя медиатеки.",
+    "security": [],
+    "parameters": [
+     {
+      "name": "u",
+      "in": "query",
+      "required": true,
+      "description": "логин",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "a",
+      "in": "query",
+      "required": true,
+      "description": "artist_key",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "s",
+      "in": "query",
+      "required": true,
+      "description": "подпись",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "image/jpeg": {
+        "schema": {
+         "type": "string",
+         "format": "binary"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Нет",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/lyrics/{track_id}": {
+   "get": {
+    "tags": [
+     "Воспроизведение"
+    ],
+    "summary": "Текст песни",
+    "operationId": "getLyrics",
+    "parameters": [
+     {
+      "name": "track_id",
+      "in": "path",
+      "required": true,
+      "description": "id трека",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Lyrics"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/tracks/{tid}/lyrics/refetch": {
+   "post": {
+    "tags": [
+     "Воспроизведение"
+    ],
+    "summary": "Найти текст заново",
+    "operationId": "refetchLyrics",
+    "description": "Синхронно, до 100 с. 20 раз в час.",
+    "parameters": [
+     {
+      "name": "tid",
+      "in": "path",
+      "required": true,
+      "description": "id трека",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": false,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "clear": {
+          "type": "boolean"
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "allOf": [
+          {
+           "$ref": "#/components/schemas/Lyrics"
+          },
+          {
+           "type": "object",
+           "properties": {
+            "status": {
+             "type": "string",
+             "enum": [
+              "updated",
+              "same",
+              "cleared",
+              "not_found"
+             ]
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "busy",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "rate_limited",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "504": {
+      "description": "timeout",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/stream/{login}/{token}.mp3": {
+   "get": {
+    "tags": [
+     "Воспроизведение"
+    ],
+    "summary": "Живой поток «Моя Волна»",
+    "operationId": "waveStream",
+    "description": "Бесконечный MP3 (icy). Ссылка — stream_url из /api/me; секрет в пути.",
+    "security": [],
+    "parameters": [
+     {
+      "name": "login",
+      "in": "path",
+      "required": true,
+      "description": "логин",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "description": "токен потока",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "audio/mpeg": {
+        "schema": {
+         "type": "string",
+         "format": "binary"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Нет",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/wave/now": {
+   "get": {
+    "tags": [
+     "Волна и радио"
+    ],
+    "summary": "Что сейчас в эфире «Моей Волны»",
+    "operationId": "waveNow",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "live": {
+           "type": "boolean"
+          },
+          "listeners": {
+           "type": "integer"
+          },
+          "artist": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "title": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "album": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "duration": {
+           "anyOf": [
+            {
+             "type": "integer"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "started_at": {
+           "anyOf": [
+            {
+             "type": "integer"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "cover": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "track_id": {
+           "anyOf": [
+            {
+             "type": "integer"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/wave/discover": {
+   "post": {
+    "tags": [
+     "Волна и радио"
+    ],
+    "summary": "Подобрать и скачать новые треки «Моей Волны»",
+    "operationId": "waveDiscover",
+    "requestBody": {
+     "required": false,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "size": {
+          "type": "integer",
+          "description": "1…50"
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "seeds": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          },
+          "queued": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "busy",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "502": {
+      "description": "wave_failed",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/wave/refresh": {
+   "post": {
+    "tags": [
+     "Волна и радио"
+    ],
+    "summary": "Обновить плейлист «Моя Волна» в Jellyfin",
+    "operationId": "waveRefresh",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "tracks": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "502": {
+      "description": "jellyfin_failed",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/radio": {
+   "get": {
+    "tags": [
+     "Волна и радио"
+    ],
+    "summary": "Станции интернет-радио",
+    "operationId": "listRadio",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Station"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "Волна и радио"
+    ],
+    "summary": "Добавить станцию",
+    "operationId": "addRadio",
+    "description": "Только публичные http(s)-потоки. jellyfin: false — Jellyfin не принял список (станция сохранена).",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         },
+         "url": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "name",
+         "url"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "allOf": [
+          {
+           "$ref": "#/components/schemas/Station"
+          },
+          {
+           "type": "object",
+           "properties": {
+            "jellyfin": {
+             "type": "boolean"
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_station",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/radio/{rid}/delete": {
+   "post": {
+    "tags": [
+     "Волна и радио"
+    ],
+    "summary": "Удалить станцию (администратор)",
+    "operationId": "deleteRadio",
+    "parameters": [
+     {
+      "name": "rid",
+      "in": "path",
+      "required": true,
+      "description": "id станции",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "jellyfin": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists": {
+   "get": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Свои и совместные плейлисты",
+    "operationId": "listPlaylists",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/PlaylistBrief"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Создать плейлист",
+    "operationId": "createPlaylist",
+    "description": "catalog — наполнить из поиска/каталога (треки скачиваются и добавляются по мере загрузки).",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         },
+         "description": {
+          "type": "string"
+         },
+         "shared": {
+          "type": "boolean"
+         },
+         "track_ids": {
+          "type": "array",
+          "items": {
+           "type": "integer"
+          }
+         },
+         "catalog": {
+          "type": "object",
+          "properties": {
+           "token": {
+            "type": "string",
+            "description": "token из ответа поиска/каталога (живёт ограниченное время → 404 expired)"
+           },
+           "kind": {
+            "type": "string",
+            "enum": [
+             "track",
+             "all",
+             "album",
+             "tracks",
+             "album_track"
+            ],
+            "description": "track — tracks[i]; all — все tracks; album — albums[i] целиком; tracks — индексы idx; album_track — трек j альбома i"
+           },
+           "i": {
+            "type": "integer"
+           },
+           "j": {
+            "type": "integer"
+           },
+           "idx": {
+            "type": "array",
+            "items": {
+             "type": "integer"
+            },
+            "description": "Индексы tracks для kind=tracks (до 500)"
+           }
+          },
+          "required": [
+           "token",
+           "kind"
+          ]
+         }
+        },
+        "required": [
+         "name"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "allOf": [
+          {
+           "$ref": "#/components/schemas/PlaylistBrief"
+          },
+          {
+           "type": "object",
+           "properties": {
+            "queued": {
+             "type": "integer"
+            },
+            "added_now": {
+             "type": "integer"
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_name / bad_description / bad_track_ids / bad_catalog / bad_kind / bad_index",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "expired",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "limit",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "quota",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "507": {
+      "description": "disk_full",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}": {
+   "get": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Плейлист с треками",
+    "operationId": "getPlaylist",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     },
+     {
+      "name": "sort",
+      "in": "query",
+      "required": false,
+      "description": "manual — порядок плейлиста (по умолчанию) или как у медиатеки",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "manual",
+        "added",
+        "title",
+        "artist",
+        "album",
+        "genre",
+        "year",
+        "duration",
+        "random"
+       ]
+      }
+     },
+     {
+      "name": "order",
+      "in": "query",
+      "required": false,
+      "description": "asc / desc. По умолчанию added и year — по убыванию, остальное — по возрастанию.",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "asc",
+        "desc"
+       ]
+      }
+     },
+     {
+      "name": "seed",
+      "in": "query",
+      "required": false,
+      "description": "Для sort=random",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "allOf": [
+          {
+           "$ref": "#/components/schemas/PlaylistBrief"
+          },
+          {
+           "type": "object",
+           "properties": {
+            "sort": {
+             "type": "string"
+            },
+            "tracks": {
+             "type": "array",
+             "items": {
+              "$ref": "#/components/schemas/PlaylistTrack"
+             }
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_sort / bad_order",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/update": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Переименовать / описание",
+    "operationId": "updatePlaylist",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         },
+         "description": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlaylistBrief"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_name / bad_description",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/share": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Общий доступ (владелец)",
+    "operationId": "sharePlaylist",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "enabled": {
+          "type": "boolean"
+         },
+         "regenerate": {
+          "type": "boolean"
+         }
+        },
+        "required": [
+         "enabled"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "shared": {
+           "type": "boolean"
+          },
+          "invite": {
+           "anyOf": [
+            {
+             "$ref": "#/components/schemas/Invite"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_enabled",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/add": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Добавить треки",
+    "operationId": "addToPlaylist",
+    "description": "Одно из: track_ids (до 5000), album {a, b} или artist (папки своей медиатеки).",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "track_ids": {
+          "type": "array",
+          "items": {
+           "type": "integer"
+          }
+         },
+         "album": {
+          "type": "object",
+          "properties": {
+           "a": {
+            "type": "string"
+           },
+           "b": {
+            "type": "string"
+           }
+          }
+         },
+         "artist": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "added": {
+           "type": "integer"
+          },
+          "skipped": {
+           "type": "integer"
+          },
+          "count": {
+           "type": "integer"
+          },
+          "full": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_track_ids / bad_album / bad_artist / nothing_to_add",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/remove": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Убрать позиции",
+    "operationId": "removeFromPlaylist",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "item_ids": {
+          "type": "array",
+          "items": {
+           "type": "integer"
+          }
+         }
+        },
+        "required": [
+         "item_ids"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "removed": {
+           "type": "integer"
+          },
+          "count": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_item_ids",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/move": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Переставить позицию",
+    "operationId": "movePlaylistItem",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "item_id": {
+          "type": "integer"
+         },
+         "to": {
+          "type": "integer",
+          "description": "Индекс в итоговом списке"
+         }
+        },
+        "required": [
+         "item_id",
+         "to"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_move",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/move-many": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Переставить выделение блоком",
+    "operationId": "movePlaylistItems",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "item_ids": {
+          "type": "array",
+          "items": {
+           "type": "integer"
+          }
+         },
+         "to": {
+          "type": "integer"
+         }
+        },
+        "required": [
+         "item_ids",
+         "to"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "moved": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_move",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/delete": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Удалить (владелец)",
+    "operationId": "deletePlaylist",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/leave": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Выйти (участник)",
+    "operationId": "leavePlaylist",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "owner_cannot_leave",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/kick": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Убрать участника (владелец)",
+    "operationId": "kickMember",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "login": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "login"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlaylistBrief"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found / not_member",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/{pid}/save": {
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Сохранить недостающие треки в медиатеку",
+    "operationId": "savePlaylist",
+    "parameters": [
+     {
+      "name": "pid",
+      "in": "path",
+      "required": true,
+      "description": "id плейлиста",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "linked": {
+           "type": "integer"
+          },
+          "missing": {
+           "type": "integer"
+          },
+          "failed": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/join": {
+   "get": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Превью приглашения",
+    "operationId": "joinPreview",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "query",
+      "required": true,
+      "description": "Токен",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "integer"
+          },
+          "name": {
+           "type": "string"
+          },
+          "owner": {
+           "type": "string"
+          },
+          "count": {
+           "type": "integer"
+          },
+          "covers": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          },
+          "already": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "Вступить по приглашению",
+    "operationId": "joinPlaylist",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "token": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "token"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlaylistBrief"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "members_limit",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/playlists/for-track": {
+   "get": {
+    "tags": [
+     "Плейлисты"
+    ],
+    "summary": "В каких плейлистах трек",
+    "operationId": "playlistsForTrack",
+    "parameters": [
+     {
+      "name": "track_id",
+      "in": "query",
+      "required": true,
+      "description": "id трека",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "integer"
+             },
+             "name": {
+              "type": "string"
+             },
+             "has": {
+              "type": "boolean"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_track_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/upload": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Загрузить аудиофайлы",
+    "operationId": "upload",
+    "description": "multipart/form-data, любое имя поля, до 50 файлов. Ход — /api/uploads. При 413/429/507 ответ приходит сразу с Connection: close — уже принятые файлы есть в uploads.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "type": "object",
+        "additionalProperties": {
+         "type": "string",
+         "format": "binary"
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "uploads": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "integer"
+             },
+             "name": {
+              "type": "string"
+             },
+             "state": {
+              "type": "string"
+             }
+            }
+           }
+          },
+          "rejected": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Rejected"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_multipart / no_files",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "408": {
+      "description": "timeout",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "413": {
+      "description": "too_large / too_many / quota",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "415": {
+      "description": "use_import — это список треков, отправьте в /api/import/file",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "busy / too_many",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "unavailable",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "507": {
+      "description": "disk_full",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/uploads": {
+   "get": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Мои загрузки (последние 100)",
+    "operationId": "listUploads",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "$ref": "#/components/schemas/Upload"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/uploads/{uid}/info": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Ответить на need_info",
+    "operationId": "uploadInfo",
+    "parameters": [
+     {
+      "name": "uid",
+      "in": "path",
+      "required": true,
+      "description": "id загрузки",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "artist": {
+          "type": "string"
+         },
+         "title": {
+          "type": "string"
+         },
+         "album": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "artist",
+         "title"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Upload"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_info",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "bad_state",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/uploads/{uid}/skip": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Оставить как есть",
+    "operationId": "uploadSkip",
+    "parameters": [
+     {
+      "name": "uid",
+      "in": "path",
+      "required": true,
+      "description": "id загрузки",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Upload"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "bad_state",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/uploads/{uid}/cancel": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Отменить загрузку",
+    "operationId": "uploadCancel",
+    "parameters": [
+     {
+      "name": "uid",
+      "in": "path",
+      "required": true,
+      "description": "id загрузки",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Upload"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "bad_state",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/import": {
+   "get": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Идущие импорты списков",
+    "operationId": "listImports",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "imports": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "integer"
+             },
+             "filename": {
+              "type": "string"
+             },
+             "total": {
+              "type": "integer"
+             },
+             "state": {
+              "type": "string"
+             },
+             "counts": {
+              "type": "object",
+              "additionalProperties": {
+               "type": "integer"
+              }
+             },
+             "text": {
+              "type": "string"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/import/file": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Импорт списка TXT/CSV/TSV",
+    "operationId": "importFile",
+    "description": "multipart, поле file, до 2 МБ. Импорт сразу запускается и создаёт плейлист.",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "multipart/form-data": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "file": {
+          "type": "string",
+          "format": "binary"
+         }
+        },
+        "required": [
+         "file"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "import_id": {
+           "type": "integer"
+          },
+          "format": {
+           "type": "string"
+          },
+          "total": {
+           "type": "integer"
+          },
+          "name": {
+           "type": "string"
+          },
+          "playlist": {
+           "anyOf": [
+            {
+             "type": "object",
+             "properties": {
+              "id": {
+               "type": "integer"
+              },
+              "name": {
+               "type": "string"
+              }
+             }
+            },
+            {
+             "type": "null"
+            }
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_multipart / no_file / empty / bad_format / no_tracks / bad_file",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "408": {
+      "description": "timeout",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "413": {
+      "description": "too_large",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "415": {
+      "description": "unsupported",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/import/pause": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Пауза импорта",
+    "operationId": "importPause",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "id": {
+          "type": "integer"
+         }
+        },
+        "required": [
+         "id"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "state": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "bad_state",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/import/resume": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Продолжить импорт",
+    "operationId": "importResume",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "id": {
+          "type": "integer"
+         }
+        },
+        "required": [
+         "id"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "state": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "bad_state",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/import/cancel": {
+   "post": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Остановить импорт",
+    "operationId": "importCancel",
+    "description": "С id — один импорт, без тела — все.",
+    "requestBody": {
+     "required": false,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "id": {
+          "type": "integer"
+         }
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "cancelled": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/import/failed": {
+   "get": {
+    "tags": [
+     "Файлы и импорт"
+    ],
+    "summary": "Ненайденные треки импорта",
+    "operationId": "importFailed",
+    "parameters": [
+     {
+      "name": "id",
+      "in": "query",
+      "required": true,
+      "description": "id импорта",
+      "schema": {
+       "type": "integer"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "artist": {
+              "type": "string"
+             },
+             "title": {
+              "type": "string"
+             },
+             "album": {
+              "type": "string"
+             },
+             "note": {
+              "type": "string"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_id",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "not_found",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/settings": {
+   "get": {
+    "tags": [
+     "Настройки"
+    ],
+    "summary": "Все настройки пользователя",
+    "operationId": "getSettings",
+    "description": "Хранилище «ключ → JSON», общее для устройств пользователя. Сервер значения не толкует.",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "object",
+           "additionalProperties": {
+            "$ref": "#/components/schemas/Setting"
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/settings/{key}": {
+   "put": {
+    "tags": [
+     "Настройки"
+    ],
+    "summary": "Записать настройку",
+    "operationId": "putSetting",
+    "description": "base — updated_at, от которого вы меняли: если на сервере уже другое, 409 conflict с current.",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "description": "Ключ: [a-z0-9._-]{1,80}",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "value": {},
+         "base": {
+          "type": "integer"
+         }
+        },
+        "required": [
+         "value"
+        ]
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "key": {
+           "type": "string"
+          },
+          "value": {},
+          "updated_at": {
+           "type": "integer"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_key / bad_value / bad_base / bad_json",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "conflict (current) / limit",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "413": {
+      "description": "too_large",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "Настройки"
+    ],
+    "summary": "Удалить настройку",
+    "operationId": "deleteSetting",
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "description": "Ключ: [a-z0-9._-]{1,80}",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "ok": {
+           "type": "boolean"
+          },
+          "deleted": {
+           "type": "boolean"
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "bad_key",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/admin/status": {
+   "get": {
+    "tags": [
+     "Администратор"
+    ],
+    "summary": "Состояние сервера",
+    "operationId": "adminStatus",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "disk": {
+           "type": "object",
+           "properties": {
+            "total": {
+             "type": "integer"
+            },
+            "used": {
+             "type": "integer"
+            },
+            "free": {
+             "type": "integer"
+            }
+           }
+          },
+          "users": {
+           "type": "integer"
+          },
+          "tracks": {
+           "type": "integer"
+          },
+          "links": {
+           "type": "integer"
+          },
+          "soulseek_online": {
+           "anyOf": [
+            {
+             "type": "boolean"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          },
+          "queue": {
+           "type": "integer"
+          },
+          "jellyfin_url": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "type": "null"
+            }
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/admin/users": {
+   "get": {
+    "tags": [
+     "Администратор"
+    ],
+    "summary": "Пользователи",
+    "operationId": "adminUsers",
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "items": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "login": {
+              "type": "string"
+             },
+             "tracks": {
+              "type": "integer"
+             },
+             "is_admin": {
+              "type": "boolean"
+             },
+             "telegram": {
+              "type": "boolean"
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "401": {
+      "description": "Нет входа: unauthorized / revoked / token_expired — показать экран входа",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "forbidden",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/updates/{name}": {
+   "get": {
+    "tags": [
+     "Обновления"
+    ],
+    "summary": "Файлы обновлений приложений",
+    "operationId": "updates",
+    "description": "latest.json (Windows, формат tauri-updater v2), android.json, установщики и подписи.",
+    "security": [],
+    "parameters": [
+     {
+      "name": "name",
+      "in": "path",
+      "required": true,
+      "description": "Имя файла",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Успех",
+      "content": {
+       "application/octet-stream": {
+        "schema": {
+         "type": "string",
+         "format": "binary"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Нет",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "securitySchemes": {
+   "bearer": {
+    "type": "http",
+    "scheme": "bearer",
+    "description": "Токен устройства из /api/auth/poll или /api/auth/telegram"
+   },
+   "telegramInitData": {
+    "type": "apiKey",
+    "in": "header",
+    "name": "X-Telegram-Init-Data",
+    "description": "Telegram.WebApp.initData — только для Mini App внутри Telegram"
+   }
+  },
+  "schemas": {
+   "Error": {
+    "type": "object",
+    "properties": {
+     "error": {
+      "type": "string",
+      "description": "Машинный код ошибки — по нему клиент решает, что делать."
+     },
+     "message": {
+      "type": "string",
+      "description": "Текст по-русски, можно показывать пользователю как есть (есть не всегда)."
+     }
+    },
+    "required": [
+     "error"
+    ],
+    "additionalProperties": true
+   },
+   "Track": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "artist": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "album": {
+      "type": "string"
+     },
+     "duration": {
+      "type": "string",
+      "description": "Длительность для показа, «4:46»"
+     },
+     "seconds": {
+      "type": "integer"
+     },
+     "cover": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Подписанная ссылка на обложку (24 ч) или null — обложки нет"
+     },
+     "stream": {
+      "type": "string",
+      "description": "Подписанная ссылка на файл (12 ч): /api/stream/{id}?u=&e=&s="
+     },
+     "owned": {
+      "type": "boolean",
+      "description": "Трек в медиатеке пользователя (в общих плейлистах может быть false)"
+     },
+     "gain": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "ReplayGain к −14 LUFS, дБ; null — ещё не посчитан"
+     },
+     "peak": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Пиковый уровень 0…1"
+     },
+     "genre": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "added_at": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Когда появился в медиатеке (unix); null вне списков медиатеки"
+     },
+     "broken": {
+      "type": "boolean",
+      "description": "Файл помечен проблемным (идёт или не удалась перекачка)"
+     },
+     "artist_key": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Папка исполнителя: a для /api/library/artist и /api/library/album"
+     },
+     "album_key": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Папка альбома: b для /api/library/album"
+     },
+     "size": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Размер файла, байт"
+     }
+    },
+    "required": [
+     "id",
+     "artist",
+     "title",
+     "stream"
+    ],
+    "description": "Трек медиатеки — одинаковый во всех ответах."
+   },
+   "PlaylistTrack": {
+    "allOf": [
+     {
+      "$ref": "#/components/schemas/Track"
+     },
+     {
+      "type": "object",
+      "properties": {
+       "item_id": {
+        "type": "integer",
+        "description": "Позиция в плейлисте (для remove/move)"
+       },
+       "added_by": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       }
+      }
+     }
+    ]
+   },
+   "SearchTrack": {
+    "type": "object",
+    "properties": {
+     "i": {
+      "type": "integer",
+      "description": "Индекс в результате (для /api/download)"
+     },
+     "artist": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "album": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "duration": {
+      "type": "string"
+     },
+     "key": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "match_key «артист|название» — сверка с /api/library/keys"
+     },
+     "isrc": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "cover": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "preview": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "30-секундный фрагмент (https)"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "no": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "Номер трека в альбоме (страницы каталога)"
+     }
+    },
+    "required": [
+     "i",
+     "artist",
+     "title"
+    ],
+    "description": "Трек каталога (ещё не скачан)."
+   },
+   "SearchAlbum": {
+    "type": "object",
+    "properties": {
+     "i": {
+      "type": "integer"
+     },
+     "id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": {
+      "type": "string"
+     },
+     "year": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "kind": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "artist": {
+      "type": "string"
+     },
+     "artist_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "cover": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    }
+   },
+   "SearchArtist": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "name": {
+      "type": "string"
+     },
+     "picture": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "fans": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    }
+   },
+   "PlaylistBrief": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "description": {
+      "type": "string"
+     },
+     "count": {
+      "type": "integer"
+     },
+     "seconds": {
+      "type": "integer"
+     },
+     "covers": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "До 4 обложек для мозаики"
+     },
+     "shared": {
+      "type": "boolean",
+      "description": "Совместный: есть ссылка или участники (бейдж «Общий»)"
+     },
+     "invite_enabled": {
+      "type": "boolean",
+      "description": "Ссылка-приглашение сейчас работает"
+     },
+     "role": {
+      "type": "string",
+      "enum": [
+       "owner",
+       "member"
+      ]
+     },
+     "owner": {
+      "type": "string"
+     },
+     "members": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "login": {
+         "type": "string"
+        }
+       }
+      }
+     },
+     "updated_at": {
+      "type": "integer"
+     },
+     "invite": {
+      "$ref": "#/components/schemas/Invite"
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "role"
+    ]
+   },
+   "Invite": {
+    "type": "object",
+    "properties": {
+     "token": {
+      "type": "string"
+     },
+     "link": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "t.me/<бот>?start=pl_<token> или null"
+     },
+     "app_link": {
+      "type": "string",
+      "description": "<сервер>/app/#join=<token>"
+     }
+    },
+    "description": "Только у владельца общего плейлиста."
+   },
+   "Lyrics": {
+    "type": "object",
+    "properties": {
+     "synced": {
+      "anyOf": [
+       {
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "t": {
+           "type": "number",
+           "description": "Секунды от начала"
+          },
+          "text": {
+           "type": "string"
+          }
+         }
+        }
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "plain": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "lrc",
+         "tags"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    }
+   },
+   "Upload": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "state": {
+      "type": "string",
+      "enum": [
+       "receiving",
+       "queued",
+       "analyzing",
+       "need_info",
+       "processing",
+       "done",
+       "duplicate",
+       "failed",
+       "cancelled"
+      ]
+     },
+     "state_text": {
+      "type": "string",
+      "description": "Состояние по-русски"
+     },
+     "artist": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "album": {
+      "type": "string"
+     },
+     "duration": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "size": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "note": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "created_at": {
+      "type": "integer"
+     },
+     "updated_at": {
+      "type": "integer"
+     },
+     "track": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Track"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    }
+   },
+   "Device": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "platform": {
+      "type": "string"
+     },
+     "created_at": {
+      "type": "integer"
+     },
+     "last_seen": {
+      "type": "integer"
+     },
+     "current": {
+      "type": "boolean",
+      "description": "Это устройство (вошли по его токену)"
+     }
+    }
+   },
+   "Setting": {
+    "type": "object",
+    "properties": {
+     "value": {
+      "type": "string",
+      "description": "Любой JSON до 32 КБ"
+     },
+     "updated_at": {
+      "type": "integer",
+      "description": "Миллисекунды, строго растут"
+     }
+    }
+   },
+   "Station": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "name": {
+      "type": "string"
+     },
+     "url": {
+      "type": "string",
+      "description": "Поток станции — можно играть напрямую"
+     }
+    }
+   },
+   "Rejected": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "error": {
+      "type": "string"
+     },
+     "message": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ }
+}

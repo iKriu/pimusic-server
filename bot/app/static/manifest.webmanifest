@@ -1,0 +1,25 @@
+{
+  "name": "PiMusic",
+  "short_name": "PiMusic",
+  "description": "Личный стриминг: поиск, медиатека, «Моя Волна», плейлисты и эквалайзер.",
+  "lang": "ru",
+  "dir": "ltr",
+  "id": "/app/",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#17130e",
+  "theme_color": "#17130e",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Моя Волна", "short_name": "Волна", "url": "/app/#wave", "icons": [{ "src": "icons/shortcut-wave.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "Поиск", "short_name": "Поиск", "url": "/app/#search", "icons": [{ "src": "icons/shortcut-search.png", "sizes": "96x96", "type": "image/png" }] }
+  ]
+}

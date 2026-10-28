@@ -1,0 +1,28 @@
+# секреты и локальные настройки
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pem
+*-release.properties
+local.properties
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# кэши сборки приложений (готовые APK/EXE лежат в apps/dist и в релизах)
+node_modules/
+target/
+.gradle/
+build/outputs/
+**/android/app/build/
+
+# прочее
+.DS_Store
+Thumbs.db

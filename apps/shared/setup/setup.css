@@ -1,0 +1,36 @@
+  :root {
+    color-scheme: dark;
+    --primary: #f5a524; --on-primary: #2a1800; --surface: #17130e; --surface-c: #231e17; --surface-ch: #2e2820;
+    --on-surface: #ece0d4; --on-surface-v: #d4c4b0; --outline: #9d8f7d; --error: #ffb4ab;
+    --inset-top: max(env(safe-area-inset-top, 0px), var(--pimusic-inset-top, 0px));
+    --inset-bottom: max(env(safe-area-inset-bottom, 0px), var(--pimusic-inset-bottom, 0px));
+  }
+  @media (prefers-color-scheme: light) {
+    :root { color-scheme: light; --primary: #845400; --on-primary: #fff; --surface: #fff8f3; --surface-c: #f8ecdf;
+      --surface-ch: #f0e0cf; --on-surface: #211a12; --on-surface-v: #51453a; --outline: #84756a; --error: #ba1a1a; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--surface); color: var(--on-surface);
+    font: 16px/1.5 "Roboto Flex", Roboto, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 480px; margin: 0 auto; padding: calc(var(--inset-top) + 48px) 24px calc(var(--inset-bottom) + 32px); }
+  .logo { width: 96px; height: 96px; display: block; margin: 0 0 24px; }
+  h1 { font-size: 32px; line-height: 40px; font-weight: 600; margin: 0 0 8px; letter-spacing: 0; }
+  p { margin: 0 0 24px; color: var(--on-surface-v); }
+  .card { background: var(--surface-c); border-radius: 28px; padding: 24px; }
+  label { display: block; font-size: 14px; font-weight: 500; margin: 0 0 8px; color: var(--on-surface-v); }
+  input { width: 100%; font: inherit; color: var(--on-surface); background: var(--surface-ch); border: 2px solid transparent;
+    border-radius: 16px; padding: 14px 16px; outline: none; }
+  input:focus { border-color: var(--primary); }
+  .hint { font-size: 14px; margin: 8px 0 0; }
+  .err { color: var(--error); font-size: 14px; margin: 12px 0 0; min-height: 1.5em; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+  button { font: inherit; font-weight: 600; border: 0; cursor: pointer; border-radius: 999px; padding: 0 24px; height: 48px;
+    transition: border-radius .2s cubic-bezier(.2,0,0,1); }
+  button:active { border-radius: 14px; }
+  .filled { background: var(--primary); color: var(--on-primary); flex: 1 1 auto; }
+  .text { background: transparent; color: var(--primary); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+  .banner { display: none; background: var(--surface-ch); border-radius: 16px; padding: 12px 16px; margin: 0 0 16px; }
+  .banner.on { display: block; }
+
+[hidden] { display: none !important; }

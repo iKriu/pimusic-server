@@ -1,0 +1,7 @@
+[Unit]
+Description=PiMusic cleanup (slskd incomplete, dangling images)
+[Service]
+Type=oneshot
+Nice=15
+IOSchedulingClass=idle
+ExecStart=/usr/local/sbin/pimusic-cleanup.sh

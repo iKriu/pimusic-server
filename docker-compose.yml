@@ -1,0 +1,116 @@
+# PiMusic — Jellyfin + slskd + Telegram-бот. Все пути данных берутся из .env (DATA_DIR).
+# ВАЖНО: /media во всех контейнерах — это ОДНА папка хоста (${DATA_DIR}/media) и одинаковый путь внутри.
+# Так работают жёсткие ссылки (общий кэш -> личные медиатеки) и пути, которые бот получает от Jellyfin.
+
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "5m"
+    max-file: "2"
+
+# Лимиты ресурсов: ни один контейнер не должен съесть всю память/процессор хоста. Значения — с запасом в 5–10 раз
+# от обычного потребления (jellyfin ~300 МБ, slskd ~185 МБ, bot ~100 МБ в простое; пики — сканирование медиатеки,
+# ffmpeg/sldl при импорте). Переопределяются в .env (JELLYFIN_MEM_LIMIT=1g и т.п.).
+
+services:
+  jellyfin:
+    image: ${JELLYFIN_IMAGE:-ghcr.io/jellyfin/jellyfin}:${JELLYFIN_VERSION:-10.11.11}
+    container_name: pimusic-jellyfin
+    user: "${PUID:-1000}:${PGID:-1000}"
+    restart: unless-stopped
+    ports:
+      - "${JELLYFIN_BIND:-0.0.0.0}:8096:8096"
+      - "7359:7359/udp"   # автообнаружение клиентами в локальной сети
+    environment:
+      - TZ=${TZ:-Europe/Moscow}
+      - JELLYFIN_PublishedServerUrl=http://${PUBLIC_HOST}:8096
+      - DOTNET_GCHeapHardLimit=0x30000000   # ~768 МБ — куча .NET; ffmpeg и кэш страниц — сверх неё, см. mem_limit
+    volumes:
+      - ${DATA_DIR}/jellyfin/config:/config
+      - ${DATA_DIR}/jellyfin/cache:/cache
+      - ${DATA_DIR}/media:/media:ro
+      # личные медиатеки — с правом записи: пользователь может удалить свой трек прямо в плеере
+      # (бот раз в 5 минут замечает это и чистит общий кэш); общий кэш library/ остаётся только для чтения
+      - ${DATA_DIR}/media/users:/media/users
+    mem_limit: ${JELLYFIN_MEM_LIMIT:-2g}
+    memswap_limit: ${JELLYFIN_MEM_LIMIT:-2g}   # без ухода в своп сверх лимита
+    cpus: ${JELLYFIN_CPUS:-2.0}
+    pids_limit: 512
+    logging: *logging
+
+  slskd:
+    image: ${SLSKD_IMAGE:-ghcr.io/slskd/slskd}:${SLSKD_VERSION:-0.26.1}
+    container_name: pimusic-slskd
+    user: "${PUID:-1000}:${PGID:-1000}"
+    restart: unless-stopped
+    ports:
+      - "5030:5030"
+      - "50300:50300"     # входящие соединения Soulseek — пробросьте на роутере для лучших скоростей
+    environment:
+      - TZ=${TZ:-Europe/Moscow}
+      - SLSKD_REMOTE_CONFIGURATION=true
+      - SLSKD_SLSK_USERNAME=${SLSK_USERNAME}
+      - SLSKD_SLSK_PASSWORD=${SLSK_PASSWORD}
+      - SLSKD_SLSK_LISTEN_PORT=50300
+      - SLSKD_USERNAME=${SLSKD_WEB_USER:-admin}
+      - SLSKD_PASSWORD=${SLSKD_WEB_PASSWORD}
+      - SLSKD_API_KEY=${SLSKD_API_KEY}
+      - SLSKD_DOWNLOADS_DIR=/media/incoming/slskd
+      - SLSKD_INCOMPLETE_DIR=/app/incomplete
+      # раздаётся /media/share — жёсткие ссылки на треки кэша без личных загрузок (их ведёт бот)
+      - SLSKD_SHARED_DIR=${SLSKD_SHARED_DIR:-/media/share}
+      - SLSKD_NO_DISK_LOGGER=true
+      - SLSKD_UMASK=002
+    volumes:
+      - ${DATA_DIR}/slskd:/app
+      # только то, что нужно: папка загрузок (запись) и раздача (только чтение)
+      - ${DATA_DIR}/media/incoming/slskd:/media/incoming/slskd
+      - ${DATA_DIR}/media/share:/media/share:ro
+    mem_limit: ${SLSKD_MEM_LIMIT:-1g}
+    memswap_limit: ${SLSKD_MEM_LIMIT:-1g}
+    cpus: ${SLSKD_CPUS:-1.5}
+    pids_limit: 256
+    # в образе slskd (Ubuntu) есть wget, curl нет; /health отвечает «Healthy». --no-proxy: если задан HTTP(S)-прокси
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --no-proxy -T 10 -O /dev/null http://127.0.0.1:5030/health || exit 1"]
+      interval: 1m
+      timeout: 15s
+      start_period: 1m
+      retries: 3
+    logging: *logging
+
+  bot:
+    build:
+      context: ./bot
+      args:
+        SOCKSEEK_REF: ${SOCKSEEK_REF:-v3.0.6}
+        BASE_IMAGE: ${JELLYFIN_IMAGE:-ghcr.io/jellyfin/jellyfin}:${JELLYFIN_VERSION:-10.11.11}
+    image: pimusic-bot:latest
+    container_name: pimusic-bot
+    user: "${PUID:-1000}:${PGID:-1000}"
+    restart: unless-stopped
+    depends_on:
+      - jellyfin
+      - slskd
+    env_file: .env
+    environment:
+      - TZ=${TZ:-Europe/Moscow}
+      - MEDIA_ROOT=/media
+      - STATE_DIR=/state
+      - JELLYFIN_INTERNAL_URL=http://jellyfin:8096
+      - SLSKD_INTERNAL_URL=http://slskd:5030
+      - STREAM_PORT=8097
+    ports:
+      - "8097:8097"       # живые потоки «Моя Волна»
+      - "${SLDL_LISTEN_PORT:-50301}:${SLDL_LISTEN_PORT:-50301}"
+    volumes:
+      - ${DATA_DIR}/media:/media
+      - ${DATA_DIR}/state:/state
+      # автообновление приложений (GET /updates/{name}): кладутся на хосте, боту — только чтение
+      - ${DATA_DIR}/updates:/media/updates:ro
+    # 6 потоков импорта: каждый может держать sldl (.NET) и ffmpeg — отсюда запас до 2 ГБ
+    mem_limit: ${BOT_MEM_LIMIT:-2g}
+    memswap_limit: ${BOT_MEM_LIMIT:-2g}
+    cpus: ${BOT_CPUS:-2.0}
+    pids_limit: 512
+    logging: *logging

@@ -1,0 +1,225 @@
+/* Оболочка: window size classes (data-wsc), навигация bar ↔ rail, canonical layouts. */
+
+.app {
+  position: fixed; left: 0; right: 0; top: 0;
+  height: var(--app-h, 100dvh);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-areas: "rail panes" "mini mini" "bar bar";
+  background: var(--md-sys-color-surface);
+}
+.app[data-nav="bar"] > .nav-rail { display: none; }
+.app[data-nav="rail"] > .nav-bar { display: none; }
+/* rail во всю высоту, мини-плеер — внизу области контента */
+.app[data-nav="rail"] { grid-template-areas: "rail panes" "rail mini" "rail bar"; }
+
+.panes {
+  grid-area: panes;
+  display: flex;
+  min-width: 0; min-height: 0;
+  padding-top: var(--inset-top);
+  padding-right: var(--inset-right);
+}
+.app[data-nav="bar"] .panes { padding-left: var(--inset-left); }
+.app[data-nav="rail"] .panes { padding-bottom: var(--inset-bottom); } /* нет нижней навигации — home indicator считаем сами */
+.pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.pane-list, .pane-detail { flex: 1 1 0; }
+.pane-support { flex: 0 0 var(--support-pane-w); }
+
+/* ---------------- одна панель (compact, compact landscape, medium): детали — полноэкранная страница */
+.app[data-panes="1"] .pane-support { display: none; }
+.app[data-panes="1"][data-detail="open"] .pane-list { display: none; }
+.app[data-panes="1"][data-detail="empty"] .pane-detail { display: none; }
+
+/* ---------------- list-detail (expanded+): список 360dp + детали, панели — тональные контейнеры */
+.app[data-panes="2"] .panes { gap: 16px; padding-bottom: calc(16px + var(--inset-bottom)); padding-top: calc(12px + var(--inset-top)); padding-right: calc(16px + var(--inset-right)); }
+.app[data-panes="2"] .pane {
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+}
+.app[data-panes="2"] .pane-list { flex: 0 0 var(--list-pane-w); }
+.app[data-wsc="xl"] { --list-pane-w: 400px; --support-pane-w: 380px; }
+.app[data-panes="2"][data-single="1"] .pane-list { flex: 1 1 0; }
+.app[data-panes="2"][data-single="1"] .pane-detail { display: none; }
+.app[data-panes="2"][data-support="off"] .pane-support { display: none; }
+/* вкладки без деталей на широком экране: контент ограничен по ширине */
+.app[data-panes="2"][data-single="1"] .pane-list .scroll { padding-inline: max(0px, calc((100% - 920px) / 2)); }
+.app[data-wsc="xl"] .pane-detail .page-body,
+.app[data-wsc="xl"] .pane-detail .fh-hero { max-width: 1040px; margin-inline: auto; width: 100%; }
+
+/* ---------------- views */
+.view {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  container-type: inline-size;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+.app[data-panes="2"] .view { background: transparent; }
+.app[data-panes="2"] .page.has-content-color,
+.app[data-panes="2"] .page { background: var(--md-sys-color-surface-container-low); }
+.view > .scroll { flex: 1; }
+
+.detail-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; }
+
+/* ---------------- навигационная панель (compact): M3E flexible nav bar 64dp + home indicator */
+.nav-bar {
+  grid-area: bar;
+  background: var(--md-sys-color-surface-container);
+  padding: 0 var(--inset-right) var(--inset-bottom) var(--inset-left);
+  position: relative; z-index: 3;
+}
+.nav-bar .nav-items { display: flex; min-height: var(--nav-bar-h); }
+.nav-item {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-medium);
+  position: relative;
+}
+.nav-ind {
+  position: relative;
+  width: 56px; height: 32px; border-radius: var(--md-sys-shape-corner-full);
+  display: grid; place-items: center;
+  transition: background-color var(--md-motion-effects-default-dur) var(--md-motion-effects-default);
+}
+.nav-ind::before { /* state layer */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0;
+  transition: opacity var(--md-motion-effects-fast-dur) linear;
+}
+.nav-item:hover .nav-ind::before { opacity: var(--md-sys-state-hover); }
+.nav-item:active .nav-ind::before { opacity: var(--md-sys-state-pressed); }
+.nav-item.is-active { color: var(--md-sys-color-on-surface); }
+.nav-item.is-active .nav-label { color: var(--md-sys-color-secondary); font-weight: 700; }
+.nav-item.is-active .nav-ind { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+.nav-item.is-active .nav-ind { animation: ind-in var(--md-motion-spatial-fast-dur) var(--md-motion-spatial-fast); }
+@keyframes ind-in { from { transform: scaleX(.4); } }
+.nav-label { max-width: 100%; text-align: center; overflow-wrap: normal; word-break: keep-all; padding: 0 2px; }
+/* Крупный системный текст: по M3 подпись остаётся только у активного пункта (иначе слова рвутся посередине —
+   «Медиат-ека»). Название вкладки остаётся доступным: у кнопки есть aria-label. */
+[data-textscale="large"] .nav-bar .nav-item:not(.is-active) .nav-label { position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[data-textscale="large"] .nav-bar .nav-item.is-active .nav-label { white-space: nowrap; }
+.nav-item:focus-visible { outline: none; }
+.nav-item:focus-visible .nav-ind { outline: 3px solid var(--md-sys-color-secondary); outline-offset: 2px; }
+.nav-ind .badge { position: absolute; top: -2px; left: 32px; }
+
+/* ---------------- navigation rail: 96dp с подписями / 80dp без подписей (landscape) / expanded (XL) */
+.nav-rail {
+  grid-area: rail;
+  width: var(--rail-w);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: calc(12px + var(--inset-top)) 0 calc(12px + var(--inset-bottom)) var(--inset-left);
+  box-sizing: content-box;
+  background: var(--md-sys-color-surface);
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
+}
+.nav-rail .nav-items { display: flex; flex-direction: column; gap: 4px; width: 100%; align-items: center; margin-top: 8px; }
+.nav-rail .nav-item { flex: none; width: 100%; min-height: 64px; padding: 4px 0; }
+.app[data-rail="icons"] { --rail-w: 80px; }
+.app[data-rail="icons"] .nav-rail .nav-label { display: none; }
+.app[data-rail="icons"] .nav-rail .nav-item { min-height: 56px; }
+.app[data-rail="icons"] .rail-brand-text { display: none; }
+
+.rail-brand { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 48px; color: var(--md-sys-color-on-surface); font: var(--md-sys-typescale-label-medium); font-weight: 700; }
+.rail-brand-shape {
+  width: 56px; height: 56px; display: grid; place-items: center;
+  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
+  -webkit-mask: var(--shape-cookie9) center / contain no-repeat; mask: var(--shape-cookie9) center / contain no-repeat;
+  transition: transform var(--md-motion-spatial-default-dur) var(--md-motion-spatial-default);
+}
+.rail-brand:hover .rail-brand-shape { transform: rotate(40deg); }
+.app[data-rail="icons"] .rail-brand-shape { width: 48px; height: 48px; }
+
+.app[data-rail="expanded"] { --rail-w: var(--rail-w-expanded); }
+.app[data-rail="expanded"] .nav-rail { align-items: stretch; padding-left: calc(12px + var(--inset-left)); padding-right: 12px; }
+.app[data-rail="expanded"] .rail-brand { flex-direction: row; gap: 12px; padding: 0 4px; font: var(--md-sys-typescale-title-large); font-weight: 700; }
+.app[data-rail="expanded"] .nav-rail .nav-items { align-items: stretch; }
+.app[data-rail="expanded"] .nav-rail .nav-item {
+  flex-direction: row; justify-content: flex-start; gap: 12px; min-height: 56px; padding: 0 16px 0 0;
+  border-radius: var(--md-sys-shape-corner-full); font: var(--md-sys-typescale-label-large);
+}
+.app[data-rail="expanded"] .nav-rail .nav-item.is-active { background: var(--md-sys-color-secondary-container); }
+.app[data-rail="expanded"] .nav-rail .nav-item.is-active .nav-label { color: var(--md-sys-color-on-secondary-container); }
+.app[data-rail="expanded"] .nav-rail .nav-item.is-active .nav-ind { background: transparent; }
+.app[data-rail="expanded"] .nav-rail .nav-ind { width: 56px; }
+
+/* ---------------- gate (permission / ошибки запуска) */
+.gate { position: fixed; inset: 0; display: grid; place-items: center; padding: calc(24px + var(--inset-top)) calc(24px + var(--inset-right)) calc(24px + var(--inset-bottom)) calc(24px + var(--inset-left)); background: var(--md-sys-color-surface); overflow-y: auto; }
+.gate-inner { max-width: 420px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+.gate-title { font: var(--md-sys-typescale-headline-medium); font-weight: 700; font-variation-settings: var(--md-sys-typescale-emphasized-variation); margin-top: 12px; }
+.gate-text { font: var(--md-sys-typescale-body-large); color: var(--md-sys-color-on-surface-variant); overflow-wrap: anywhere; }
+.gate-text code { background: var(--md-sys-color-surface-container-high); padding: 2px 6px; border-radius: 6px; color: var(--md-sys-color-on-surface); }
+.gate-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.gate-art { width: 144px; height: 144px; }
+
+/* ---------------- snackbar host */
+.snackbar-host {
+  position: fixed; z-index: 50; left: calc(50% + (var(--inset-left) - var(--inset-right)) / 2); transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px - var(--inset-left) - var(--inset-right)));
+  bottom: calc(var(--nav-bar-h) + var(--inset-bottom) + 12px);
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.app[data-nav="rail"] ~ .snackbar-host { bottom: calc(24px + var(--inset-bottom)); }
+/* снекбары стопкой над мини-плеером (--mini-h — расстояние от верха плеера до низа экрана, считает JS) */
+.app[data-mini="on"] ~ .snackbar-host { bottom: calc(var(--mini-h, 140px) + 8px); }
+.snackbar-host > * { pointer-events: auto; }
+
+/* ---------------- мини-плеер «сейчас играет» */
+.mini {
+  grid-area: mini;
+  position: relative; z-index: 2; isolation: isolate;
+  display: flex; align-items: center; gap: 4px;
+  min-height: 64px; padding: 8px;
+  margin: 6px calc(8px + var(--inset-right)) 8px calc(8px + var(--inset-left));
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);
+  box-shadow: var(--md-sys-elevation-1);
+  animation: mini-in var(--md-motion-spatial-default-dur) var(--md-motion-spatial-default);
+}
+.mini[hidden] { display: none; }
+@keyframes mini-in { from { transform: translateY(24px); opacity: 0; } }
+.app[data-nav="rail"] .mini { margin: 0 calc(16px + var(--inset-right)) calc(12px + var(--inset-bottom)) 12px; }
+.app[data-nav="rail"][data-mini="on"] .panes { padding-bottom: 8px; }
+.app[data-panes="2"][data-mini="on"] .panes { padding-bottom: 12px; }
+.app[data-panes="2"] .mini { margin-left: 0; }
+.mini-main {
+  flex: 1 1 auto; min-width: 0; min-height: 48px;
+  display: flex; align-items: center; gap: 12px; padding: 0 4px 0 0; text-align: left; color: inherit;
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+.mini-main:focus-visible { outline-offset: 2px; }
+.mini-cover { flex: none; width: 48px; height: 48px; }
+.mini-pic { width: 48px; height: 48px; border-radius: var(--md-sys-shape-corner-medium); }
+.mini-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mini-title { font: var(--md-sys-typescale-title-small); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-sub { display: flex; align-items: center; gap: 8px; min-width: 0; font: var(--md-sys-typescale-body-small); }
+.mini-sub-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .9; }
+.mini-live, .np-over { display: inline-flex; align-items: center; gap: 6px; flex: none; font: var(--md-sys-typescale-label-small); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.mini-live[hidden] { display: none; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--md-sys-color-error); flex: none;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--md-sys-color-error) 60%, transparent); animation: live-pulse 1.8s ease-out infinite; }
+@keyframes live-pulse { 70% { box-shadow: 0 0 0 6px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.mini .mini-toggle, .mini .mini-toggle[data-on] { width: 48px; height: 48px; position: relative; background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.mini-toggle .ms { font-size: 28px; }
+/* как у большой кнопки: пауза — «печенье», играет — круг */
+.mini .mini-toggle[data-on="0"] { border-radius: 0; -webkit-mask: var(--shape-cookie9) center / contain no-repeat; mask: var(--shape-cookie9) center / contain no-repeat; }
+.mini-toggle.is-busy .ms { opacity: 0; }
+.mini-spin { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; color: var(--md-sys-color-on-primary); }
+.mini-spin .lind { color: currentColor; }
+.mini-close { color: inherit; width: 48px; height: 48px; }
+.mini[data-state="error"] .mini-sub-text { color: var(--md-sys-color-error); opacity: 1; font-weight: 600; }
+.mini.has-content-color { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+/* смахивание мини-плеера: слайд (обложка + текст) и «подглядывающие» соседние треки по бокам */
+.mini-main { overflow: hidden; touch-action: pan-y; }
+.mini-slide { position: relative; flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; will-change: transform; }
+.mini-peek { position: absolute; top: 0; bottom: 0; width: 100%; display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.mini-peek.is-next { left: calc(100% + 24px); }
+.mini-peek.is-prev { right: calc(100% + 24px); flex-direction: row-reverse; text-align: right; } /* при смахивании вправо виден правый край — там обложка и название */
+.mini-peek.is-prev .mini-text { align-items: flex-end; }
+.mini-peek .mini-text { min-width: 0; }
+.mini-peek .mini-title, .mini-peek .mini-sub-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-peek .mini-sub-text { font: var(--md-sys-typescale-body-small); }

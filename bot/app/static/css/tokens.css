@@ -1,0 +1,190 @@
+/* M3 Expressive design tokens. Цветовые роли пересчитываются в JS (color.js) из seed #F5A524
+   и Telegram.WebApp.colorScheme; здесь — та же схема, предвычисленная, на время до запуска JS. */
+
+:root,
+:root[data-theme="dark"] {
+  /* @generated seed-dark */
+  --md-sys-color-primary: #f2bd79;
+  --md-sys-color-on-primary: #462b00;
+  --md-sys-color-primary-container: #643f00;
+  --md-sys-color-on-primary-container: #ffddb4;
+  --md-sys-color-inverse-primary: #835400;
+  --md-sys-color-surface-tint: #f2bd79;
+  --md-sys-color-primary-fixed: #ffddb4;
+  --md-sys-color-primary-fixed-dim: #f2bd79;
+  --md-sys-color-on-primary-fixed: #2a1800;
+  --md-sys-color-secondary: #d8c3aa;
+  --md-sys-color-on-secondary: #3e2d18;
+  --md-sys-color-secondary-container: #55442e;
+  --md-sys-color-on-secondary-container: #f5dfc5;
+  --md-sys-color-tertiary: #b4cea1;
+  --md-sys-color-on-tertiary: #21360e;
+  --md-sys-color-tertiary-container: #374d25;
+  --md-sys-color-on-tertiary-container: #d0ebbc;
+  --md-sys-color-error: #ffb4a8;
+  --md-sys-color-on-error: #690000;
+  --md-sys-color-error-container: #930001;
+  --md-sys-color-on-error-container: #ffdad4;
+  --md-sys-color-background: #17130e;
+  --md-sys-color-on-background: #e8e2da;
+  --md-sys-color-surface: #17130e;
+  --md-sys-color-surface-dim: #17130e;
+  --md-sys-color-surface-bright: #3d3833;
+  --md-sys-color-surface-container-lowest: #120d09;
+  --md-sys-color-surface-container-low: #1f1b16;
+  --md-sys-color-surface-container: #231f19;
+  --md-sys-color-surface-container-high: #2e2924;
+  --md-sys-color-surface-container-highest: #39342e;
+  --md-sys-color-on-surface: #e8e2da;
+  --md-sys-color-surface-variant: #4e453a;
+  --md-sys-color-on-surface-variant: #d0c5b8;
+  --md-sys-color-outline: #9a8f83;
+  --md-sys-color-outline-variant: #4e453a;
+  --md-sys-color-inverse-surface: #e8e2da;
+  --md-sys-color-inverse-on-surface: #34302a;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-success: #93d6a1;
+  --md-sys-color-on-success: #003915;
+  --md-sys-color-success-container: #0a5225;
+  --md-sys-color-on-success-container: #aff2bc;
+  /* @end */
+}
+
+:root[data-theme="light"] {
+  /* @generated seed-light */
+  --md-sys-color-primary: #835400;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ffddb4;
+  --md-sys-color-on-primary-container: #2a1800;
+  --md-sys-color-inverse-primary: #f2bd79;
+  --md-sys-color-surface-tint: #835400;
+  --md-sys-color-primary-fixed: #ffddb4;
+  --md-sys-color-primary-fixed-dim: #f2bd79;
+  --md-sys-color-on-primary-fixed: #2a1800;
+  --md-sys-color-secondary: #6e5b44;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #f5dfc5;
+  --md-sys-color-on-secondary-container: #281804;
+  --md-sys-color-tertiary: #4e653c;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #d0ebbc;
+  --md-sys-color-on-tertiary-container: #0f2000;
+  --md-sys-color-error: #c00002;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad4;
+  --md-sys-color-on-error-container: #410000;
+  --md-sys-color-background: #fff8f1;
+  --md-sys-color-on-background: #1f1b16;
+  --md-sys-color-surface: #fff8f1;
+  --md-sys-color-surface-dim: #dfd9d2;
+  --md-sys-color-surface-bright: #fff8f1;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f9f3eb;
+  --md-sys-color-surface-container: #f3ede5;
+  --md-sys-color-surface-container-high: #ede7e0;
+  --md-sys-color-surface-container-highest: #e8e2da;
+  --md-sys-color-on-surface: #1f1b16;
+  --md-sys-color-surface-variant: #ece1d3;
+  --md-sys-color-on-surface-variant: #4e453a;
+  --md-sys-color-outline: #807569;
+  --md-sys-color-outline-variant: #d0c5b8;
+  --md-sys-color-inverse-surface: #34302a;
+  --md-sys-color-inverse-on-surface: #f6f0e8;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-success: #2a6b3c;
+  --md-sys-color-on-success: #ffffff;
+  --md-sys-color-success-container: #aff2bc;
+  --md-sys-color-on-success-container: #002109;
+  /* @end */
+}
+
+:root {
+  /* ---------------- типографика: Roboto Flex (вариативные оси) + системные запасные */
+  --md-ref-typeface-brand: "Roboto Flex", Roboto, system-ui, -apple-system, "Segoe UI", "Noto Sans", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --md-ref-typeface-plain: "Roboto Flex", Roboto, system-ui, -apple-system, "Segoe UI", "Noto Sans", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+
+  --md-sys-typescale-display-large: 400 57px/64px var(--md-ref-typeface-brand);
+  --md-sys-typescale-display-medium: 400 45px/52px var(--md-ref-typeface-brand);
+  --md-sys-typescale-display-small: 400 36px/44px var(--md-ref-typeface-brand);
+  --md-sys-typescale-headline-large: 400 32px/40px var(--md-ref-typeface-brand);
+  --md-sys-typescale-headline-medium: 400 28px/36px var(--md-ref-typeface-brand);
+  --md-sys-typescale-headline-small: 400 24px/32px var(--md-ref-typeface-brand);
+  --md-sys-typescale-title-large: 400 22px/28px var(--md-ref-typeface-brand);
+  --md-sys-typescale-title-medium: 500 16px/24px var(--md-ref-typeface-plain);
+  --md-sys-typescale-title-small: 500 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-body-large: 400 16px/24px var(--md-ref-typeface-plain);
+  --md-sys-typescale-body-medium: 400 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-body-small: 400 12px/16px var(--md-ref-typeface-plain);
+  --md-sys-typescale-label-large: 500 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-label-medium: 500 12px/16px var(--md-ref-typeface-plain);
+  --md-sys-typescale-label-small: 500 11px/16px var(--md-ref-typeface-plain);
+  /* emphasized: на ступень жирнее; заголовки — чуть уже и с grade для «выразительности» */
+  --md-sys-typescale-emphasized-weight: 700;
+  --md-sys-typescale-emphasized-variation: "wdth" 96, "GRAD" 50;
+
+  /* ---------------- форма (M3E shape scale) */
+  --md-sys-shape-corner-none: 0;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-large-increased: 20px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-extra-large-increased: 32px;
+  --md-sys-shape-corner-extra-extra-large: 48px;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* ---------------- движение: cubic-bezier-аппроксимации пружин M3E (JS заменяет на linear()) */
+  --md-motion-spatial-fast: cubic-bezier(0.42, 1.67, 0.21, 0.90);
+  --md-motion-spatial-fast-dur: 350ms;
+  --md-motion-spatial-default: cubic-bezier(0.38, 1.21, 0.22, 1.00);
+  --md-motion-spatial-default-dur: 500ms;
+  --md-motion-spatial-slow: cubic-bezier(0.39, 1.29, 0.35, 0.98);
+  --md-motion-spatial-slow-dur: 650ms;
+  --md-motion-effects-fast: cubic-bezier(0.31, 0.94, 0.34, 1.00);
+  --md-motion-effects-fast-dur: 150ms;
+  --md-motion-effects-default: cubic-bezier(0.34, 0.80, 0.34, 1.00);
+  --md-motion-effects-default-dur: 200ms;
+  --md-motion-effects-slow: cubic-bezier(0.34, 0.88, 0.34, 1.00);
+  --md-motion-effects-slow-dur: 300ms;
+  --md-motion-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+
+  /* ---------------- высота: тени только у FAB/меню/диалогов */
+  --md-sys-elevation-1: 0 1px 2px rgb(0 0 0 / .3), 0 1px 3px 1px rgb(0 0 0 / .15);
+  --md-sys-elevation-2: 0 1px 2px rgb(0 0 0 / .3), 0 2px 6px 2px rgb(0 0 0 / .15);
+  --md-sys-elevation-3: 0 4px 8px 3px rgb(0 0 0 / .15), 0 1px 3px rgb(0 0 0 / .3);
+
+  /* ---------------- state layers */
+  --md-sys-state-hover: 0.08;
+  --md-sys-state-focus: 0.10;
+  --md-sys-state-pressed: 0.10;
+  --md-sys-state-dragged: 0.16;
+
+  /* ---------------- раскладка */
+  --gutter: 16px;
+  --nav-bar-h: 64px; /* M3E flexible navigation bar (DESIGN 6a.4) */
+  --rail-w: 96px;
+  --rail-w-expanded: 220px;
+  --list-pane-w: 360px;
+  --support-pane-w: 360px;
+  --target: 48px;
+
+  /* отступы безопасной зоны: устройство + Telegram (fullscreen content safe area) */
+  --inset-top: max(env(safe-area-inset-top, 0px), var(--tg-inset-top, 0px), calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px)));
+  --inset-right: max(env(safe-area-inset-right, 0px), var(--tg-inset-right, 0px));
+  --inset-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-inset-bottom, 0px), calc(var(--tg-safe-area-inset-bottom, 0px) + var(--tg-content-safe-area-inset-bottom, 0px)));
+  --inset-left: max(env(safe-area-inset-left, 0px), var(--tg-inset-left, 0px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --md-motion-spatial-fast-dur: 0ms;
+    --md-motion-spatial-default-dur: 0ms;
+    --md-motion-spatial-slow-dur: 0ms;
+    --md-motion-effects-fast-dur: 0ms;
+    --md-motion-effects-default-dur: 0ms;
+    --md-motion-effects-slow-dur: 0ms;
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "pimusic-windows",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PiMusic для Windows (Tauri 2 оболочка над веб-приложением)",
+  "scripts": {
+    "tauri": "tauri",
+    "webui": "node ../build/prepare-webui.mjs",
+    "icons": "node ../shared/icon/gen-icons.mjs ../shared/icon/out && tauri icon ../shared/icon/out/icon.png -o src-tauri/icons",
+    "build": "npm run webui && tauri build",
+    "build:cross": "npm run webui && tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.3"
+  }
+}

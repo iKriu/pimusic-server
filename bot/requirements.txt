@@ -1,0 +1,7 @@
+python-telegram-bot>=21.6,<23
+aiohttp>=3.10,<4
+mutagen>=1.47
+Pillow>=10.4
+syncedlyrics>=1.0.1
+spotdl==4.5.2
+yt-dlp[default,deno]>=2026.8.19

@@ -1,0 +1,1 @@
+"""PiMusic Telegram bot."""

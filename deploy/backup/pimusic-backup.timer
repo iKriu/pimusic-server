@@ -1,0 +1,8 @@
+[Unit]
+Description=PiMusic nightly backup timer
+[Timer]
+OnCalendar=*-*-* 04:30
+Persistent=true
+RandomizedDelaySec=10m
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,161 @@
+/* База: сброс, типографика, иконки, фокус, утилиты */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+h1, h2, h3, p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { cursor: default; }
+img { display: block; max-width: 100%; }
+code { font-family: ui-monospace, "Roboto Mono", Menlo, Consolas, monospace; font-size: .92em; overflow-wrap: anywhere; }
+[hidden] { display: none !important; }
+
+/* фокус-кольцо M3: 3dp secondary со смещением */
+:focus { outline: none; }
+:focus-visible { outline: 3px solid var(--md-sys-color-secondary); outline-offset: 2px; }
+/* программные цели фокуса (заголовок страницы, блок результатов) — не интерактивны, кольцо не нужно */
+[tabindex="-1"]:focus-visible { outline: none; }
+/* поля ввода без собственной рамки: кольцо рисуем на контейнере (SC 2.4.7 / 2.4.11) */
+.searchbar:has(.sb-input:focus-visible), .filter-box:has(.filter-input:focus-visible) { outline: 3px solid var(--md-sys-color-secondary); outline-offset: 2px; }
+
+/* ---------------- вспомогательные: скрыто визуально, доступно скринридеру; skip-link */
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.skip-link {
+  position: fixed; z-index: 100; left: 8px; top: 8px; transform: translateY(-200%);
+  padding: 12px 20px; border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-inverse-surface); color: var(--md-sys-color-inverse-on-surface);
+  font: var(--md-sys-typescale-label-large); text-decoration: none;
+}
+body:has(#app[hidden]) .skip-link { display: none; }
+.skip-link:focus { transform: none; outline: 3px solid var(--md-sys-color-secondary); outline-offset: 2px; }
+
+/* ---------------- Material Symbols Rounded — локальное подмножество (работает без сети; пересборка —
+   tools/dev/subset_icons.py, см. static/fonts/README.md). block: пока грузится, не показываем текст лигатуры */
+@font-face {
+  font-family: "Material Symbols Rounded";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url("../fonts/MaterialSymbolsRounded.woff2") format("woff2");
+}
+.ms {
+  font-family: "Material Symbols Rounded";
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  width: 1em; height: 1em;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none;
+  overflow: hidden;
+  white-space: nowrap;
+  letter-spacing: normal; text-transform: none; word-wrap: normal; direction: ltr;
+  font-feature-settings: "liga";
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+.ms-fill { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+/* шрифт ещё грузится — не показываем текст лигатуры; не загрузился — запасной символ */
+.icons-pending .ms { color: transparent !important; }
+.no-icon-font .ms { font-size: 0; }
+.no-icon-font .ms::before { content: attr(data-fb); font-family: system-ui, sans-serif; font-size: calc(var(--ms-size, 24px) * .75); line-height: 1; color: currentColor; }
+.no-icon-font .ms { font-size: 0 !important; width: var(--ms-size, 24px); height: var(--ms-size, 24px); }
+
+/* ---------------- типографика */
+.t-display-s { font: var(--md-sys-typescale-display-small); }
+.t-headline-l { font: var(--md-sys-typescale-headline-large); }
+.t-headline-m { font: var(--md-sys-typescale-headline-medium); }
+.t-title-l { font: var(--md-sys-typescale-title-large); }
+.t-title-m { font: var(--md-sys-typescale-title-medium); }
+.emph { font-weight: var(--md-sys-typescale-emphasized-weight); font-variation-settings: var(--md-sys-typescale-emphasized-variation); }
+.tnum, .li-meta, .stat-n, time { font-variant-numeric: tabular-nums; }
+
+.hint, .note { color: var(--md-sys-color-on-surface-variant); font: var(--md-sys-typescale-body-medium); }
+.note { padding: 8px var(--gutter); }
+
+/* ---------------- прокрутка */
+.scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--md-sys-color-outline-variant) transparent;
+}
+
+/* ---------------- картинки с плейсхолдером (Partial) */
+.pic { display: block; position: relative; overflow: hidden; background: var(--md-sys-color-surface-container-highest); flex: none; }
+.pic img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity var(--md-motion-effects-slow-dur) var(--md-motion-effects-slow); }
+.pic.is-loaded img { opacity: 1; }
+.pic-ph { position: absolute; inset: 0; display: grid; place-items: center; color: var(--md-sys-color-on-primary-container); background: var(--md-sys-color-primary-container); }
+.pic { container-type: size; }
+.pic-ph .ms { font-size: clamp(16px, 40cqmin, 96px); width: auto; height: auto; }
+.pic-initial { font-size: clamp(12px, 38cqmin, 88px) !important; }
+.pic-initial { font: var(--md-sys-typescale-title-large); font-weight: 700; }
+
+/* ---------------- скелетоны */
+.skel { display: block; background: var(--md-sys-color-surface-container-highest); border-radius: var(--md-sys-shape-corner-small); position: relative; overflow: hidden; }
+.skel::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--md-sys-color-on-surface) 6%, transparent), transparent);
+  transform: translateX(-100%); animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+.skel-line { height: 14px; margin: 4px 0; width: 70%; }
+.skel-line.sm { height: 10px; width: 40%; }
+.skel-thumb { width: 56px; height: 56px; border-radius: var(--md-sys-shape-corner-medium); }
+.skel-thumb.round { border-radius: 50%; }
+.skel-media { width: 100%; aspect-ratio: 1; border-radius: inherit; }
+.skel-btn { width: 220px; height: 56px; border-radius: var(--md-sys-shape-corner-large); }
+.skel-hero { height: 112px; margin: 8px var(--gutter) 16px; border-radius: var(--md-sys-shape-corner-extra-large); background: var(--md-sys-color-surface-container-high); }
+
+/* ---------------- крупный текст (shell.js ставит data-textscale="large", когда системный масштаб ≥ ~150%):
+   фиксированные высоты → min-height, усечение (ellipsis/line-clamp) → перенос, SC 1.4.4 / 1.4.10 */
+:root[data-textscale="large"] :where(*:not(.ms)) { line-height: 1.3; }
+:root[data-textscale="large"] :where(.btn, .cg-btn, .chip, .owned-chip, .queue-chip, .imp-state, .ft-btn, .fh-artist-btn, .searchbar, .filter-box, .fab) { height: auto; min-height: var(--min-h, 40px); }
+:root[data-textscale="large"] :where(.btn, .cg-btn, .chip, .owned-chip, .queue-chip, .fh-artist-btn, .ft-btn) { padding-block: 6px; white-space: normal; text-align: center; }
+:root[data-textscale="large"] .chip { --min-h: 32px; }
+:root[data-textscale="large"] .imp-state { --min-h: 28px; }
+:root[data-textscale="large"] .ft-btn, :root[data-textscale="large"] .fab { --min-h: 48px; }
+:root[data-textscale="large"] .searchbar { --min-h: 56px; }
+:root[data-textscale="large"] .filter-box { --min-h: 48px; }
+:root[data-textscale="large"] .split .btn, :root[data-textscale="large"] .fh-actions .split .btn { height: auto; min-height: 48px; }
+:root[data-textscale="large"] .btn-m, :root[data-textscale="large"] .wave-buttons .btn { height: auto; min-height: 56px; }
+:root[data-textscale="large"] :where(.btn-label, .chip-label, .cg-label, .fab-label) { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; max-width: none; }
+:root[data-textscale="large"] .fab.is-collapsed .fab-label { max-width: 0; overflow: hidden; }
+:root[data-textscale="large"] .sb-input, :root[data-textscale="large"] .filter-input { height: auto; min-height: 48px; }
+:root[data-textscale="large"] .cgroup { flex-wrap: wrap; overflow: visible; }
+:root[data-textscale="large"] :where(.li-headline, .li-supporting, .tbar-title, .tbar-sub, .section-title, .hero-name, .hero-sub, .imp-title h3, .stat-l, .card-sub, .jf-text p, .fh-bar-title, .menu-label, .queue-chip) {
+  display: block; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; -webkit-line-clamp: unset;
+}
+:root[data-textscale="large"] :where(.card-title, .fh-title, .dl-active .li-headline) { display: block; -webkit-line-clamp: unset; overflow: visible; }
+:root[data-textscale="large"] .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+:root[data-textscale="large"] .tbar { align-items: flex-start; }
+:root[data-textscale="large"] .nav-bar .nav-items { height: auto; min-height: var(--nav-bar-h); }
+:root[data-textscale="large"] .nav-item { padding-block: 6px; }
+
+/* Режим высокой контрастности ОС: системные цвета для фокуса и границ */
+@media (forced-colors: active) {
+  :focus-visible { outline-color: Highlight; }
+  .btn, .ibtn, .chip, .cg-btn, .ft-btn, .fab, .card, .searchbar, .filter-box { border: 1px solid ButtonText; }
+  .cg-btn[aria-selected="true"], .ft-btn[aria-pressed="true"], .nav-item.is-active .nav-ind { outline: 2px solid Highlight; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  .skel::after { display: none; }
+}

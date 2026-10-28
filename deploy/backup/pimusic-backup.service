@@ -1,0 +1,7 @@
+[Unit]
+Description=PiMusic nightly backup
+[Service]
+Type=oneshot
+Nice=15
+IOSchedulingClass=idle
+ExecStart=/usr/local/sbin/pimusic-backup.sh

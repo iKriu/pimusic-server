@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#17130e">
+<title>PiMusic</title>
+<link rel="manifest" href="static/manifest.webmanifest">
+<link rel="icon" type="image/png" href="static/icons/favicon-64.png">
+<link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght,GRAD@8..144,75..125,300..800,-50..100&amp;display=swap">
+<link rel="preload" href="static/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="static/css/tokens.css">
+<link rel="stylesheet" href="static/css/base.css">
+<link rel="stylesheet" href="static/css/layout.css">
+<link rel="stylesheet" href="static/css/components.css">
+<link rel="stylesheet" href="static/css/screens.css">
+<link rel="stylesheet" href="static/css/queue.css">
+<link rel="stylesheet" href="static/css/phase2.css">
+<script type="module" src="static/js/app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">К содержимому</a>
+<div id="gate" class="gate" role="main" aria-live="polite">
+  <noscript><p class="gate-text">Для работы PiMusic нужен JavaScript.</p></noscript>
+</div>
+<div id="app" class="app" hidden>
+  <main id="main" class="panes" tabindex="-1">
+    <section id="pane-list" class="pane pane-list" aria-label="Основная панель"></section>
+    <section id="pane-detail" class="pane pane-detail" aria-label="Подробности"></section>
+    <aside id="pane-support" class="pane pane-support" aria-label="Очередь загрузок"></aside>
+  </main>
+</div>
+<div id="snackbar-host" class="snackbar-host"></div>
+<div id="sb-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+<div id="sb-alert" class="sr-only" role="alert" aria-atomic="true"></div>
+</body>
+</html>

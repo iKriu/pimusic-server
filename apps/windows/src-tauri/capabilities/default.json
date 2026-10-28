@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "pimusic-bridge",
+  "description": "Мост PiMusicNative: только команда pimusic_native и только для встроенных страниц (интерфейс 2.0 лежит в приложении, страницы сервера в окно не загружаются). Команда дополнительно проверяет, что вызов пришёл со встроенной страницы.",
+  "windows": [
+    "main"
+  ],
+  "local": true,
+  "permissions": [
+    "allow-pimusic-native"
+  ]
+}

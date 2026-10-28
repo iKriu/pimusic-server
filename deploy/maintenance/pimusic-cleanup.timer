@@ -1,0 +1,9 @@
+[Unit]
+Description=PiMusic daily cleanup timer
+[Timer]
+# после резервной копии (04:30)
+OnCalendar=*-*-* 05:30
+Persistent=true
+RandomizedDelaySec=10m
+[Install]
+WantedBy=timers.target

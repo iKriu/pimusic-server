@@ -1,0 +1,13 @@
+node_modules/
+dist/
+windows/src-tauri/target/
+windows/src-tauri/gen/
+*.jks
+*.keystore
+*release.properties
+build/source.env
+windows/dist-ui/
+webui/
+updater.key*
+android-native/app/build/
+android-native/.gradle/

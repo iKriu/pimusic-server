@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Открытый http разрешён только потому, что сервер PiMusic может стоять в локальной сети по IP-адресу, а
+  network security config не умеет описывать диапазоны IP и не меняется во время работы. Ограничение делает
+  приложение: адрес http:// принимается только для хоста локальной сети (core/ServerUrl.isLanHost — частные
+  IPv4/IPv6, localhost, *.local, *.lan, *.home.arpa); публичный сервер — только https.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
