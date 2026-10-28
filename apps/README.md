@@ -169,7 +169,7 @@ chmod 600 $B/keys/updater.key $B/keys/updater.key.password
 cat $B/keys/updater.key.pub     # публичный ключ → windows/src-tauri/tauri.conf.json, plugins.updater.pubkey
 ```
 
-Пока в `tauri.conf.json` стоит заглушка `PIMUSIC_UPDATER_PUBKEY`, `windows-inner.sh` берёт публичный ключ из
+Если в `tauri.conf.json` стоит заглушка `PIMUSIC_UPDATER_PUBKEY`, `windows-inner.sh` берёт публичный ключ из
 `/keys/updater.key.pub`; без ключа сборка идёт без `.sig`, и приложение не проверяет обновления.
 
 ## Установка на Windows: SmartScreen
