@@ -342,6 +342,24 @@
 раздаёт обновления со своего сервера своими сборками: имена — только плоские файлы `[A-Za-z0-9._-]+`, `latest.json` и
 `android.json` — `Cache-Control: no-cache`, остальное — `public, max-age=86400`, `Content-Length` обязателен.
 
+### `windows-native.json` — нативный клиент Windows (с 1.1.0)
+```json
+{
+  "version": "1.1.0",
+  "url": "https://github.com/<репозиторий>/releases/download/v1.1.0/PiMusic-1.1.0-setup.exe",
+  "sha256": "<64 hex>",
+  "size": 80000000,
+  "notes": "Что нового",
+  "pub_date": "2026-10-29T08:00:00Z"
+}
+```
+- Рядом — `windows-native.json.sig`: base64 от 64 байт подписи ed25519 над **точными байтами** манифеста. Без верной
+  подписи (ключ — `ManifestPublicKey` в `Update/Updater.cs`) обновление не предлагается. Пишет оба файла
+  `apps/build/release-windows-native.sh`.
+- `url` — только `https://github.com/<репозиторий>/releases/download/…`; перенаправления — только на хосты загрузок
+  GitHub. Установщик сверяется по `sha256` и `size`, запускается с `/SILENT` и сам перезапускает приложение.
+- Своя раздача через `/updates/` бэкенда: манифест и его подпись отдаются с `Cache-Control: no-cache`.
+
 ### `latest.json` — Windows (формат tauri-plugin-updater v2)
 ```json
 {

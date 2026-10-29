@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PiMusic.Views.AlbumPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <ListView x:Name="List" ItemTemplate="{StaticResource TrackRow}" Padding="24,0,24,24" AutomationProperties.Name="Треки альбома">
+            <ListView.Header>
+                <Grid Margin="12,24,12,16" ColumnSpacing="24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="200" Height="200" CornerRadius="8" Background="{ThemeResource ControlAltFillColorTertiaryBrush}"
+                            Translation="0,0,16">
+                        <Border.Shadow>
+                            <ThemeShadow />
+                        </Border.Shadow>
+                        <Grid>
+                            <FontIcon Glyph="&#xE93C;" FontSize="48" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <Image x:Name="Cover" Stretch="UniformToFill" />
+                        </Grid>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Spacing="12">
+                        <StackPanel>
+                            <TextBlock Text="Альбом" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock x:Name="TitleText" Style="{StaticResource TitleLargeTextBlockStyle}" TextWrapping="Wrap" MaxLines="3" />
+                            <HyperlinkButton x:Name="ArtistLink" Padding="0" Click="Artist_Click" />
+                            <TextBlock x:Name="InfoText" Style="{StaticResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Style="{StaticResource AccentButtonStyle}" Click="Play_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE768;" FontSize="14" />
+                                    <TextBlock Text="Слушать" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="Shuffle_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8B1;" FontSize="14" />
+                                    <TextBlock Text="Перемешать" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="Offline_Click" AutomationProperties.Name="Скачать на компьютер"
+                                    ToolTipService.ToolTip="Скачать на компьютер — слушать без сети">
+                                <FontIcon Glyph="&#xE78C;" FontSize="14" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </ListView.Header>
+        </ListView>
+        <ProgressRing x:Name="Busy" IsActive="True" />
+    </Grid>
+</Page>

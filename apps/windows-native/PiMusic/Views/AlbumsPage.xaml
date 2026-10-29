@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PiMusic.Views.AlbumsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    NavigationCacheMode="Enabled">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Margin="{StaticResource PageHeaderMargin}" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="Альбомы" Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock x:Name="CountText" Style="{StaticResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <ComboBox x:Name="SortBox" Grid.Column="1" VerticalAlignment="Bottom" MinWidth="200" SelectionChanged="SortBox_SelectionChanged"
+                      AutomationProperties.Name="Сортировка" />
+        </Grid>
+        <GridView x:Name="Tiles" Grid.Row="1" Padding="32,0,32,24" IsItemClickEnabled="True" SelectionMode="None"
+                  ItemTemplate="{StaticResource AlbumTile}" ItemClick="Grid_ItemClick" AutomationProperties.Name="Альбомы" />
+        <ProgressRing x:Name="Busy" Grid.Row="1" IsActive="True" />
+    </Grid>
+</Page>

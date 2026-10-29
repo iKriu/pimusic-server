@@ -2245,7 +2245,8 @@ async def updates(request: web.Request) -> web.StreamResponse:
     if path is None:
         raise web.HTTPNotFound()
     ext = path.suffix.lower()
-    cache = "no-cache" if ext == ".json" else UPDATE_BINARY_CACHE
+    # манифест и его подпись (windows-native.json.sig) меняются на месте — без кэша, иначе подпись разойдётся с файлом
+    cache = "no-cache" if ext == ".json" or name.endswith(".json.sig") else UPDATE_BINARY_CACHE
     return web.FileResponse(path, headers={"Content-Type": UPDATE_TYPES[ext], "Cache-Control": cache})
 
 

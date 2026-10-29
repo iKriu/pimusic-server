@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Мозаика обложек плейлиста: 4 и больше — 2×2, 1–3 — одна во весь квадрат, 0 — значок на подложке. -->
+<UserControl
+    x:Class="PiMusic.Views.PlaylistMosaic"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    IsTabStop="False">
+
+    <Border x:Name="Frame" CornerRadius="8" Background="{ThemeResource ControlAltFillColorTertiaryBrush}">
+        <Grid>
+            <FontIcon x:Name="Placeholder" Glyph="&#xE90B;" FontSize="40" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            <Image x:Name="Single" Stretch="UniformToFill" Visibility="Collapsed" />
+            <Grid x:Name="Quad" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Image x:Name="Q0" Stretch="UniformToFill" />
+                <Image x:Name="Q1" Grid.Column="1" Stretch="UniformToFill" />
+                <Image x:Name="Q2" Grid.Row="1" Stretch="UniformToFill" />
+                <Image x:Name="Q3" Grid.Row="1" Grid.Column="1" Stretch="UniformToFill" />
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

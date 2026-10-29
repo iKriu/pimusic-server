@@ -26,3 +26,7 @@ build/outputs/
 # прочее
 .DS_Store
 Thumbs.db
+
+# сборка нативного клиента Windows (.NET)
+bin/
+obj/

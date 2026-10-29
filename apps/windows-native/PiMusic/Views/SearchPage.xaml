@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Поиск: совпадения в своей медиатеке + каталог (треки / альбомы / исполнители) со скачиванием; ссылка — скачать по ссылке. -->
+<Page
+    x:Class="PiMusic.Views.SearchPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="16">
+            <TextBlock Text="Найти и скачать" Style="{StaticResource TitleTextBlockStyle}" />
+            <AutoSuggestBox x:Name="QueryBox" MaxWidth="640" HorizontalAlignment="Left" MinWidth="320" QueryIcon="Find"
+                            PlaceholderText="Исполнитель, песня, альбом или ссылка (Spotify, YouTube, Яндекс Музыка…)"
+                            QuerySubmitted="QueryBox_QuerySubmitted" AutomationProperties.Name="Что найти" />
+
+            <InfoBar x:Name="LinkBar" IsOpen="False" IsClosable="False" Severity="Informational" Title="Ссылка"
+                     Message="Скачать музыку по этой ссылке в медиатеку?">
+                <InfoBar.ActionButton>
+                    <Button Content="Скачать по ссылке" Click="DownloadLink_Click" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+
+            <!-- Своя медиатека -->
+            <StackPanel x:Name="LibrarySection" Visibility="Collapsed" Spacing="4">
+                <TextBlock Text="В вашей медиатеке" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <ListView x:Name="LibraryList" ItemTemplate="{StaticResource TrackRow}" Margin="-12,0" AutomationProperties.Name="В медиатеке" />
+            </StackPanel>
+
+            <!-- Каталог -->
+            <StackPanel x:Name="CatalogSection" Visibility="Collapsed" Spacing="8">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <SelectorBar x:Name="Tabs" SelectionChanged="Tabs_SelectionChanged" Margin="-12,0,0,0">
+                        <SelectorBarItem x:Name="TracksTab" Text="Треки" IsSelected="True" />
+                        <SelectorBarItem x:Name="AlbumsTab" Text="Альбомы" />
+                        <SelectorBarItem x:Name="ArtistsTab" Text="Исполнители" />
+                    </SelectorBar>
+                    <Button x:Name="DownloadAllButton" Grid.Column="1" Click="DownloadAll_Click" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE896;" FontSize="14" />
+                            <TextBlock Text="Скачать все треки" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+                <ListView x:Name="CatalogTracks" ItemTemplate="{StaticResource CatalogTrackRow}" SelectionMode="None" Margin="-12,0"
+                          AutomationProperties.Name="Треки каталога" />
+                <GridView x:Name="CatalogAlbums" ItemTemplate="{StaticResource CatalogAlbumTile}" Visibility="Collapsed" SelectionMode="None"
+                          IsItemClickEnabled="True" ItemClick="CatalogAlbums_ItemClick" Margin="-4,0" AutomationProperties.Name="Альбомы каталога" />
+                <GridView x:Name="CatalogArtists" ItemTemplate="{StaticResource CatalogArtistTile}" Visibility="Collapsed" SelectionMode="None"
+                          IsItemClickEnabled="True" ItemClick="CatalogArtists_ItemClick" Margin="-4,0" AutomationProperties.Name="Исполнители каталога" />
+            </StackPanel>
+
+            <ProgressRing x:Name="Busy" IsActive="False" HorizontalAlignment="Left" />
+            <TextBlock x:Name="EmptyText" Visibility="Collapsed" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>

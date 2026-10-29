@@ -5,7 +5,8 @@ apps/
   shared/bridge.js        мост window.PiMusicNative (внедряется в каждую страницу до её скриптов)
   shared/setup/           страница выбора сервера / ошибки подключения (встроена в приложение Windows)
   shared/icon/gen-icons.mjs  генератор иконок (M3E «печенька» 10 волн + волна-эквалайзер, #F5A524 на #17130E)
-  windows/                Tauri 2 (WebView2), интерфейс Mini App встроен в приложение, установщик NSIS
+  windows-native/         нативный клиент Windows: C# + WinUI 3 (Fluent, Windows 11), установщик Inno Setup
+  windows/                Tauri 2 (WebView2), интерфейс Mini App встроен в приложение, установщик NSIS (до 1.0.0)
   android-native/         Kotlin + Jetpack Compose (M3 Expressive) + Media3, интерфейс в APK
   build/                  Containerfile'ы и скрипты сборки (Linux-хост с Podman)
 ```
@@ -81,7 +82,24 @@ if (N) {
 5. Обложки для уведомления Android скачиваются нативно без заголовка Authorization (только cookies WebView) —
    если `/api/cover` требует Bearer, уведомление будет без обложки (не ошибка).
 
-## Windows (Tauri 2)
+## Windows (нативный, `windows-native/`)
+
+С 1.1.0 основной клиент Windows — свой интерфейс на C# + WinUI 3 (.NET 10, Windows App SDK вшит в сборку, без MSIX):
+Mica, NavigationView, панель плеера, «Параметры» в стиле Windows 11, системный акцентный цвет. Умеет то же, что Android:
+медиатека, поиск и скачивание, плейлисты (в том числе общие), «Моя Волна», интернет-радио, эквалайзер на 10 полос
+(AudioGraph), загрузка своих файлов и импорт списков, «Скачать на компьютер» (офлайн), трей, медиаклавиши и SMTC.
+
+* Данные: `%LOCALAPPDATA%\PiMusic\` — `settings.json` (токен зашифрован DPAPI), `queue.json`, `offline\`
+  (скачанные треки и `index.json`), `crash.log`. Установщик Inno Setup — для текущего пользователя, без прав
+  администратора, в `%LOCALAPPDATA%\Programs\PiMusic`.
+* Сборка — **на Windows** (нужны .NET 10 SDK и Inno Setup 6):
+  `pwsh apps/build/build-windows-native.ps1` → `apps/dist/PiMusic-<версия>-setup.exe` (+ `.sha256`) и zip.
+  Версия — `<Version>` в `PiMusic.csproj`. Скрипт останавливается, если в публикации нет `PiMusic.pri`
+  (скомпилированная разметка; без неё приложение не запускается — нужен `EnableMsixTooling`).
+* Автообновление: `windows-native.json` из последнего выпуска GitHub, подпись ed25519 (`windows-native.json.sig`) —
+  см. «Автообновление» ниже.
+
+## Windows (Tauri 2, до 1.0.0)
 
 **С 2.0 интерфейс встроен в приложение.** `bot/app/static` (Mini App) при сборке копируется в `windows/dist-ui`
 (`build/prepare-webui.mjs`: `index.html` без telegram-web-app.js, `static/`, `setup/`, `webui.json` с sha256
@@ -140,7 +158,13 @@ Kotlin + Jetpack Compose (Material 3 Expressive), интерфейс в APK, с 
 **В своём форке** поменяйте репозиторий: `plugins.updater.endpoints` в `windows/src-tauri/tauri.conf.json` и
 `ServerUrl.UPDATE_REPO` в `android-native/.../core/ServerUrl.kt` (и свои ключи подписи, см. ниже).
 
-* **Windows** (`tauri-plugin-updater`): проверка через минуту после запуска, затем каждые 6 часов и по пункту трея
+* **Windows, нативный клиент**: при запуске не чаще раза в сутки и по кнопке в «Параметрах». Манифест
+  `…/releases/latest/download/windows-native.json` проверяется по подписи ed25519 (`windows-native.json.sig`,
+  публичный ключ — `ManifestPublicKey` в `windows-native/PiMusic/Update/Updater.cs`), установщик — по sha256 и размеру,
+  ставится тихо и перезапускает приложение. Только https и только github.com и его хранилища файлов. Манифест и
+  подпись пишет `build/release-windows-native.sh` (ключ — `KEY`, не в репозитории). **В форке** — свой `Repo` и свой
+  ключ в `Updater.cs`.
+* **Windows, Tauri** (`tauri-plugin-updater`): проверка через минуту после запуска, затем каждые 6 часов и по пункту трея
   «Проверить обновления». Установщик проверяется по подписи minisign (pubkey в `tauri.conf.json`), ставится NSIS в
   режиме passive, приложение закрывается на время установки и запускается снова. Если веб-интерфейс подписался на
   событие моста `update` и окно на экране — диалог M3 рисует веб-интерфейс, иначе — системный диалог Windows.

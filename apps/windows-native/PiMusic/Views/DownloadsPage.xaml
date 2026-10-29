@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PiMusic.Views.DownloadsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:data="using:PiMusic.Data"
+    xmlns:views="using:PiMusic.Views"
+    AllowDrop="True" DragEnter="Page_DragEnter" DragOver="Page_DragOver" DragLeave="Page_DragLeave" Drop="Page_Drop">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок и вкладки -->
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="8" MaxWidth="1072" HorizontalAlignment="Stretch">
+            <TextBlock Text="Загрузки" Style="{StaticResource TitleTextBlockStyle}" />
+            <SelectorBar x:Name="Tabs" SelectionChanged="Tabs_SelectionChanged" Margin="-12,0,0,0">
+                <SelectorBarItem x:Name="TabDownload" Text="Скачивание" IsSelected="True">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xE896;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+                <SelectorBarItem x:Name="TabUploads" Text="Свои файлы">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xE898;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+                <SelectorBarItem x:Name="TabImport" Text="Импорт">
+                    <SelectorBarItem.Icon>
+                        <FontIcon Glyph="&#xE8FD;" />
+                    </SelectorBarItem.Icon>
+                </SelectorBarItem>
+            </SelectorBar>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1">
+            <Grid Padding="{StaticResource PagePadding}" MaxWidth="1072" HorizontalAlignment="Stretch">
+
+                <!-- ============ Скачивание ============ -->
+                <StackPanel x:Name="DownloadPanel" Spacing="16">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="LinkBox" PlaceholderText="Ссылка на трек, альбом или плейлист (Spotify, YouTube, SoundCloud, Яндекс Музыка…)"
+                                 InputScope="Url" IsSpellCheckEnabled="False" KeyDown="LinkBox_KeyDown" AutomationProperties.Name="Ссылка" />
+                        <Button Grid.Column="1" Style="{StaticResource AccentButtonStyle}" Content="Скачать" Click="Link_Click" />
+                    </Grid>
+
+                    <!-- Сейчас качается -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Сейчас" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="IdleText" Text="Ничего не качается" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ItemsRepeater x:Name="ActiveList">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="4" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="data:ActiveItem">
+                                    <Grid Padding="16,12" CornerRadius="4" ColumnSpacing="16"
+                                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ProgressRing IsActive="True" Width="20" Height="20" />
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{x:Bind Text}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                            <TextBlock Text="{x:Bind Progress}" Visibility="{x:Bind views:Ui.ShowText(Progress)}"
+                                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                        <TextBlock x:Name="QueueText" Visibility="Collapsed" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+
+                    <!-- Журнал -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Журнал" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock x:Name="LogEmpty" Text="Пока пусто" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ItemsRepeater x:Name="LogList">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="2" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="data:LogLine">
+                                    <Grid ColumnSpacing="16" Padding="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="48" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind views:DownloadsPage.Clock(Ts)}" Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Text}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- ============ Свои файлы ============ -->
+                <StackPanel x:Name="UploadsPanel" Spacing="16" Visibility="Collapsed">
+                    <Grid Padding="16" CornerRadius="8" ColumnSpacing="16"
+                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE898;" FontSize="24" VerticalAlignment="Center" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Загрузить свои файлы" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="MP3, FLAC, M4A, OGG, Opus, WAV, AAC — сервер опознает трек и подпишет теги. Можно перетащить файлы прямо сюда."
+                                       TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <Button x:Name="PickAudioButton" Grid.Column="2" Style="{StaticResource AccentButtonStyle}" Click="PickAudio_Click" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8E5;" FontSize="16" />
+                                <TextBlock Text="Загрузить файлы…" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Ход отправки -->
+                    <Grid x:Name="SendPanel" Visibility="Collapsed" Padding="16" CornerRadius="8" ColumnSpacing="16" RowSpacing="8"
+                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="SendText" Text="Отправка…" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <Button Grid.Column="1" Content="Отменить" Click="CancelSend_Click" />
+                        <ProgressBar x:Name="SendBar" Grid.Row="1" Grid.ColumnSpan="2" Maximum="1" />
+                    </Grid>
+
+                    <InfoBar x:Name="SendResult" IsOpen="False" />
+
+                    <!-- Ждут названия -->
+                    <StackPanel x:Name="NeedInfoSection" Spacing="8" Visibility="Collapsed">
+                        <TextBlock Text="Ждут названия" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <StackPanel x:Name="NeedInfoList" Spacing="8" />
+                    </StackPanel>
+
+                    <!-- Загруженные -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Загруженные" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <StackPanel x:Name="UploadsEmpty" Spacing="4" Padding="0,8">
+                            <TextBlock Text="Своих файлов пока нет" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="Нажмите «Загрузить файлы…» или перетащите аудио на эту страницу."
+                                       TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <ItemsRepeater x:Name="UploadList">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="4" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="data:Upload">
+                                    <Grid Padding="12,8" CornerRadius="4" ColumnSpacing="12" MinHeight="56"
+                                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                                          DoubleTapped="UploadRow_DoubleTapped">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Width="40" Height="40" CornerRadius="4" VerticalAlignment="Center">
+                                            <FontIcon Glyph="{x:Bind views:DownloadsPage.StateGlyph(State)}" FontSize="20"
+                                                      Visibility="{x:Bind views:DownloadsPage.ShowGlyph(State)}"
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <ProgressRing Width="24" Height="24" IsActive="{x:Bind views:DownloadsPage.Busy(State)}"
+                                                          Visibility="{x:Bind views:DownloadsPage.ShowBusy(State)}" />
+                                            <Image Source="{x:Bind views:Ui.TrackCover56(Track)}" Stretch="UniformToFill"
+                                                   Visibility="{x:Bind views:Ui.ShowObj(Track)}" />
+                                        </Grid>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind views:DownloadsPage.UploadTitle(Track, Name)}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                            <TextBlock Text="{x:Bind views:DownloadsPage.UploadSub(State, StateText, Note)}" TextTrimming="CharacterEllipsis"
+                                                       TextWrapping="NoWrap" Style="{StaticResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource SubtleButtonStyle}" Click="UploadPlay_Click"
+                                                    Visibility="{x:Bind views:Ui.ShowObj(Track)}"
+                                                    ToolTipService.ToolTip="Играть" AutomationProperties.Name="Играть">
+                                                <FontIcon Glyph="&#xE768;" FontSize="16" />
+                                            </Button>
+                                            <Button Content="Отменить" Click="UploadCancel_Click"
+                                                    Visibility="{x:Bind views:DownloadsPage.ShowCancel(State)}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- ============ Импорт списков ============ -->
+                <StackPanel x:Name="ImportPanel" Spacing="16" Visibility="Collapsed">
+                    <Grid Padding="16" CornerRadius="8" ColumnSpacing="16"
+                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Glyph="&#xE8FD;" FontSize="24" VerticalAlignment="Center" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Импорт списка треков" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="TXT, CSV или TSV до 2 МБ: Tune My Music, Exportify или строки «Артист - Песня». Треки найдутся и скачаются в плейлист."
+                                       TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <Button x:Name="PickListButton" Grid.Column="2" Style="{StaticResource AccentButtonStyle}" Click="PickList_Click" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8E5;" FontSize="16" />
+                                <TextBlock Text="Импорт списка…" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <InfoBar x:Name="ImportResult" IsOpen="False" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Идут сейчас" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <StackPanel x:Name="ImportsEmpty" Spacing="4" Padding="0,8">
+                            <TextBlock Text="Импортов нет" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="Нажмите «Импорт списка…» или перетащите TXT/CSV на эту страницу."
+                                       TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <ItemsRepeater x:Name="ImportList">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="8" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="views:ImportRow">
+                                    <StackPanel Padding="16" CornerRadius="8" Spacing="8"
+                                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                                        <TextBlock Text="{x:Bind Filename}" Style="{StaticResource BodyStrongTextBlockStyle}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{x:Bind Text}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <ProgressBar Maximum="1" Value="{x:Bind Fraction}" ShowPaused="{x:Bind Paused}"
+                                                     Visibility="{x:Bind views:Ui.Show(HasProgress)}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button Click="ImportPause_Click" Visibility="{x:Bind views:Ui.Show(Running)}">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <FontIcon Glyph="&#xE769;" FontSize="14" />
+                                                    <TextBlock Text="Пауза" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Click="ImportResume_Click" Visibility="{x:Bind views:Ui.Show(Paused)}">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <FontIcon Glyph="&#xE768;" FontSize="14" />
+                                                    <TextBlock Text="Продолжить" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Content="Отменить" Click="ImportCancel_Click" Visibility="{x:Bind views:Ui.Show(Active)}" />
+                                            <HyperlinkButton Content="{x:Bind FailedText}" Click="ImportFailed_Click"
+                                                             Visibility="{x:Bind views:Ui.Show(HasFailed)}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Подсказка при перетаскивании -->
+        <Grid x:Name="DropHint" Grid.RowSpan="2" Visibility="Collapsed" IsHitTestVisible="False" Margin="12"
+              CornerRadius="8" Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+              BorderBrush="{ThemeResource AccentFillColorDefaultBrush}" BorderThickness="2">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                <FontIcon Glyph="&#xE898;" FontSize="40" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <TextBlock Text="Загрузить в PiMusic" Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Center" />
+                <TextBlock Text="Аудио — в свои файлы, TXT/CSV/TSV — в импорт списков" HorizontalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

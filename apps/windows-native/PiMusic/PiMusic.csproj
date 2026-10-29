@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- PiMusic для Windows: нативный клиент WinUI 3 (Fluent, Windows 11). Без MSIX: распакованное приложение,
+       Windows App SDK вшит в сборку (WindowsAppSDKSelfContained), установщик — Inno Setup (installer/). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RootNamespace>PiMusic</RootNamespace>
+    <AssemblyName>PiMusic</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <!-- без этого dotnet publish не кладёт PiMusic.pri (скомпилированная разметка): установленное приложение
+         падает при старте с XamlParseException в MainWindow, хотя из bin/ запускается -->
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <SelfContained>true</SelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- эквалайзер обрабатывает отсчёты AudioGraph по указателю -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>1.1.0</Version>
+    <!-- в сборку не попадают пути машины сборщика (PDB, трассировки исключений) -->
+    <PathMap>$(MSBuildProjectDirectory)=PiMusic</PathMap>
+    <Deterministic>true</Deterministic>
+    <!-- PDB в сборку для пользователей не кладём: в нём пути машины сборщика и кэша NuGet -->
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <Product>PiMusic</Product>
+    <Company>PiMusic</Company>
+    <Description>PiMusic для Windows</Description>
+    <DefaultLanguage>ru-RU</DefaultLanguage>
+    <SatelliteResourceLanguages>ru</SatelliteResourceLanguages>
+    <!-- своя точка входа (Program.cs): один экземпляр приложения -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.4" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2*" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageReference Include="QRCoder" Version="1.8.1" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

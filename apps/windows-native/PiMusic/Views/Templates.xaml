@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Общие шаблоны: строка трека, плитки альбома и исполнителя (Fluent: скругление 4/8, сетка 4 px). -->
+<ResourceDictionary
+    x:Class="PiMusic.Views.Templates"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:data="using:PiMusic.Data"
+    xmlns:views="using:PiMusic.Views">
+
+    <x:Double x:Key="PageGutter">36</x:Double>
+    <Thickness x:Key="PagePadding">36,24,36,24</Thickness>
+    <Thickness x:Key="PageHeaderMargin">36,24,36,12</Thickness>
+
+    <!-- Заглушка обложки: нота на нейтральной подложке, поверх — картинка (если есть). -->
+    <DataTemplate x:Key="TrackRow" x:DataType="data:Track">
+        <Grid Height="56" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Width="40" Height="40" CornerRadius="4" Background="{ThemeResource ControlAltFillColorTertiaryBrush}">
+                <Grid>
+                    <FontIcon Glyph="&#xEC4F;" FontSize="16" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Image Source="{x:Bind views:Ui.Cover40(CoverUri)}" Stretch="UniformToFill" />
+                </Grid>
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind Title}" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{x:Bind Subtitle}" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <FontIcon Glyph="&#xE7BA;" FontSize="14" Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                          Visibility="{x:Bind views:Ui.Show(Broken)}" ToolTipService.ToolTip="Файл перекачивается" />
+                <views:OfflineBadge TrackId="{x:Bind Id}" ToolTipService.ToolTip="Скачано на компьютер">
+                    <FontIcon Glyph="&#xE78C;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                </views:OfflineBadge>
+                <TextBlock Text="{x:Bind Duration}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="AlbumTile" x:DataType="data:LibAlbum">
+        <StackPanel Width="160" Spacing="8" Padding="0,0,0,8">
+            <Border Width="160" Height="160" CornerRadius="8" Background="{ThemeResource ControlAltFillColorTertiaryBrush}">
+                <Grid>
+                    <FontIcon Glyph="&#xE93C;" FontSize="40" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Image Source="{x:Bind views:Ui.Cover160(CoverUri)}" Stretch="UniformToFill" />
+                </Grid>
+            </Border>
+            <StackPanel>
+                <TextBlock Text="{x:Bind Title}" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{x:Bind Subtitle}" Style="{StaticResource CaptionTextBlockStyle}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ArtistTile" x:DataType="data:LibArtist">
+        <StackPanel Width="160" Spacing="8" Padding="0,0,0,8">
+            <PersonPicture Width="160" Height="160" DisplayName="{x:Bind Name}" ProfilePicture="{x:Bind views:Ui.Cover160(ImageUri)}" />
+            <StackPanel HorizontalAlignment="Center">
+                <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}" TextAlignment="Center"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="160" />
+                <TextBlock Text="{x:Bind CountText}" Style="{StaticResource CaptionTextBlockStyle}" TextAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- Каталог (поиск): строка трека с кнопкой «Скачать» или отметкой «Уже в медиатеке». -->
+    <DataTemplate x:Key="CatalogTrackRow" x:DataType="data:CTrack">
+        <Grid Height="56" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Width="40" Height="40" CornerRadius="4" Background="{ThemeResource ControlAltFillColorTertiaryBrush}">
+                <Grid>
+                    <FontIcon Glyph="&#xEC4F;" FontSize="16" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Image Source="{x:Bind views:Ui.Cover40(CoverUri)}" Stretch="UniformToFill" />
+                </Grid>
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind Title}" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{x:Bind Subtitle}" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="NoWrap"
+                           TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind Duration}" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <FontIcon Glyph="&#xE73E;" FontSize="16" Width="32" Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                          Visibility="{x:Bind views:Ui.Show(InLibrary)}" ToolTipService.ToolTip="Уже в медиатеке" />
+                <Button Style="{StaticResource SubtleButtonStyle}" Padding="8" Tag="{x:Bind}" Click="DownloadTrack_Click"
+                        Visibility="{x:Bind views:Ui.Hide(InLibrary)}" ToolTipService.ToolTip="Скачать в медиатеку"
+                        AutomationProperties.Name="Скачать">
+                    <FontIcon Glyph="&#xE896;" FontSize="16" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="CatalogAlbumTile" x:DataType="data:CAlbum">
+        <StackPanel Width="160" Spacing="8" Padding="0,0,0,8">
+            <Border Width="160" Height="160" CornerRadius="8" Background="{ThemeResource ControlAltFillColorTertiaryBrush}">
+                <Grid>
+                    <FontIcon Glyph="&#xE93C;" FontSize="40" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <Image Source="{x:Bind views:Ui.Cover160(CoverUri)}" Stretch="UniformToFill" />
+                </Grid>
+            </Border>
+            <StackPanel>
+                <TextBlock Text="{x:Bind Title}" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{x:Bind Subtitle}" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="NoWrap"
+                           TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="CatalogArtistTile" x:DataType="data:CArtist">
+        <StackPanel Width="160" Spacing="8" Padding="0,0,0,8">
+            <PersonPicture Width="160" Height="160" DisplayName="{x:Bind Name}" ProfilePicture="{x:Bind views:Ui.Cover160(PictureUri)}" />
+            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}" TextAlignment="Center"
+                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="160" />
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

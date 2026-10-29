@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Панель плеера внизу окна (как у «Медиаплеера» Windows 11): трек слева, управление по центру, громкость справа. -->
+<UserControl
+    x:Class="PiMusic.Views.PlayerBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:views="using:PiMusic.Views">
+
+    <UserControl.Resources>
+        <Style x:Key="BarButton" TargetType="Button" BasedOn="{StaticResource SubtleButtonStyle}">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style x:Key="BarToggle" TargetType="ToggleButton" BasedOn="{StaticResource DefaultToggleButtonStyle}">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid x:Name="Root" Padding="16,8,16,12" ColumnSpacing="16" MinHeight="88"
+          Background="{ThemeResource LayerOnMicaBaseAltFillColorDefaultBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,1,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="160" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition x:Name="RightColumn" Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Текущий трек: щелчок — «Сейчас играет» -->
+        <Button x:Name="TrackButton" Style="{StaticResource SubtleButtonStyle}" Padding="4" HorizontalAlignment="Left"
+                HorizontalContentAlignment="Left" Click="TrackButton_Click" IsEnabled="{x:Bind views:Ui.HasTrack(P.Current), Mode=OneWay}"
+                ToolTipService.ToolTip="Сейчас играет" AutomationProperties.Name="Сейчас играет">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="56" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="56" Height="56" CornerRadius="4" Background="{ThemeResource ControlAltFillColorTertiaryBrush}">
+                    <Grid>
+                        <FontIcon Glyph="&#xEC4F;" FontSize="20" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        <Image Source="{x:Bind views:Ui.TrackCover56(P.Current), Mode=OneWay}" Stretch="UniformToFill" />
+                    </Grid>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" MaxWidth="320">
+                    <TextBlock Text="{x:Bind views:PlayerBar.TitleOf(P.Current), Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{x:Bind views:Ui.ArtistOf(P.Current), Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </Grid>
+        </Button>
+
+        <!-- Управление и прогресс -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
+                <ToggleButton x:Name="ShuffleButton" Style="{StaticResource BarToggle}" IsChecked="{x:Bind P.Shuffle, Mode=TwoWay}"
+                              ToolTipService.ToolTip="Перемешать" AutomationProperties.Name="Перемешать">
+                    <FontIcon Glyph="&#xE8B1;" FontSize="16" />
+                </ToggleButton>
+                <Button Style="{StaticResource BarButton}" Click="Prev_Click" ToolTipService.ToolTip="Предыдущий"
+                        AutomationProperties.Name="Предыдущий">
+                    <FontIcon Glyph="&#xE892;" FontSize="16" />
+                </Button>
+                <Button x:Name="PlayButton" Style="{StaticResource AccentButtonStyle}" Width="44" Height="44" CornerRadius="22" Padding="0"
+                        Click="Play_Click" ToolTipService.ToolTip="{x:Bind PlayLabel(P.IsPlaying), Mode=OneWay}"
+                        AutomationProperties.Name="{x:Bind PlayLabel(P.IsPlaying), Mode=OneWay}">
+                    <Grid>
+                        <FontIcon Glyph="{x:Bind PlayGlyph(P.IsPlaying), Mode=OneWay}" FontSize="18"
+                                  Visibility="{x:Bind views:Ui.Hide(P.IsBuffering), Mode=OneWay}" />
+                        <ProgressRing Width="20" Height="20" IsActive="{x:Bind P.IsBuffering, Mode=OneWay}"
+                                      Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                    </Grid>
+                </Button>
+                <Button Style="{StaticResource BarButton}" Click="Next_Click" ToolTipService.ToolTip="Следующий"
+                        AutomationProperties.Name="Следующий">
+                    <FontIcon Glyph="&#xE893;" FontSize="16" />
+                </Button>
+                <Button x:Name="RepeatButton" Style="{StaticResource BarButton}" Click="Repeat_Click"
+                        ToolTipService.ToolTip="{x:Bind RepeatLabel(P.Repeat), Mode=OneWay}"
+                        AutomationProperties.Name="{x:Bind RepeatLabel(P.Repeat), Mode=OneWay}">
+                    <Grid>
+                        <FontIcon Glyph="&#xE8EE;" FontSize="16" Visibility="{x:Bind RepeatOffShow(P.Repeat), Mode=OneWay}" />
+                        <FontIcon Glyph="{x:Bind RepeatGlyph(P.Repeat), Mode=OneWay}" FontSize="16"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" Visibility="{x:Bind RepeatOnShow(P.Repeat), Mode=OneWay}" />
+                    </Grid>
+                </Button>
+            </StackPanel>
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="48" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="48" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="PositionText" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" TextAlignment="Right"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="0:00" />
+                <Slider x:Name="Seek" Grid.Column="1" Width="480" MinWidth="200" Minimum="0" Maximum="1" StepFrequency="1"
+                        IsThumbToolTipEnabled="True" ThumbToolTipValueConverter="{x:Bind TimeConverter}"
+                        ValueChanged="Seek_ValueChanged" AutomationProperties.Name="Позиция" />
+                <TextBlock x:Name="DurationText" Grid.Column="2" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="0:00" />
+            </Grid>
+        </StackPanel>
+
+        <!-- Громкость и очередь -->
+        <StackPanel x:Name="RightPanel" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="4">
+            <Button Style="{StaticResource BarButton}" Click="Mute_Click" ToolTipService.ToolTip="{x:Bind MuteLabel(P.IsMuted), Mode=OneWay}"
+                    AutomationProperties.Name="{x:Bind MuteLabel(P.IsMuted), Mode=OneWay}">
+                <FontIcon Glyph="{x:Bind VolumeGlyph(P.Volume, P.IsMuted), Mode=OneWay}" FontSize="16" />
+            </Button>
+            <Slider Width="120" Minimum="0" Maximum="100" StepFrequency="1" VerticalAlignment="Center"
+                    Value="{x:Bind VolumePercent, Mode=TwoWay}" AutomationProperties.Name="Громкость" />
+            <Button Style="{StaticResource BarButton}" Click="Eq_Click" ToolTipService.ToolTip="Эквалайзер"
+                    AutomationProperties.Name="Эквалайзер">
+                <FontIcon Glyph="&#xE9E9;" FontSize="16" />
+            </Button>
+            <Button Style="{StaticResource BarButton}" Click="TrackButton_Click" ToolTipService.ToolTip="Очередь и текст"
+                    AutomationProperties.Name="Очередь и текст">
+                <FontIcon Glyph="&#xE90B;" FontSize="16" />
+            </Button>
+        </StackPanel>
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="900" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="RightPanel.Visibility" Value="Collapsed" />
+                        <Setter Target="RightColumn.Width" Value="0" />
+                        <Setter Target="Seek.Width" Value="240" />
+                        <Setter Target="ShuffleButton.Visibility" Value="Collapsed" />
+                        <Setter Target="RepeatButton.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+
+</UserControl>

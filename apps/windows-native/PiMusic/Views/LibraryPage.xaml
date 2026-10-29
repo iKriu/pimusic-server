@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PiMusic.Views.LibraryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    NavigationCacheMode="Enabled">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="{StaticResource PageHeaderMargin}" Spacing="16">
+            <StackPanel>
+                <TextBlock Text="Медиатека" Style="{StaticResource TitleTextBlockStyle}" />
+                <TextBlock x:Name="CountText" Style="{StaticResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <Grid ColumnSpacing="8" RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Style="{StaticResource AccentButtonStyle}" Click="PlayAll_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE768;" FontSize="14" />
+                        <TextBlock Text="Слушать" />
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="1" Click="Shuffle_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8B1;" FontSize="14" />
+                        <TextBlock Text="Перемешать" />
+                    </StackPanel>
+                </Button>
+                <AutoSuggestBox x:Name="FilterBox" Grid.Column="2" MaxWidth="360" HorizontalAlignment="Left" MinWidth="200"
+                                PlaceholderText="Фильтр по названию, исполнителю, альбому" QueryIcon="Filter"
+                                TextChanged="FilterBox_TextChanged" AutomationProperties.Name="Фильтр" />
+                <ComboBox x:Name="GenreBox" Grid.Column="3" MinWidth="160" PlaceholderText="Все жанры" SelectionChanged="Filter_Changed"
+                          AutomationProperties.Name="Жанр" />
+                <ComboBox x:Name="SortBox" Grid.Column="4" MinWidth="200" SelectionChanged="Filter_Changed" AutomationProperties.Name="Сортировка">
+                    <ComboBoxItem Content="Недавно добавленные" Tag="added" IsSelected="True" />
+                    <ComboBoxItem Content="Название" Tag="title" />
+                    <ComboBoxItem Content="Исполнитель" Tag="artist" />
+                    <ComboBoxItem Content="Альбом" Tag="album" />
+                    <ComboBoxItem Content="Год" Tag="year" />
+                    <ComboBoxItem Content="Длительность" Tag="duration" />
+                    <ComboBoxItem Content="Случайно" Tag="random" />
+                </ComboBox>
+            </Grid>
+        </StackPanel>
+
+        <ListView x:Name="List" Grid.Row="1" Padding="24,0,24,24" ItemTemplate="{StaticResource TrackRow}"
+                  AutomationProperties.Name="Треки медиатеки" />
+        <ProgressRing x:Name="Busy" Grid.Row="1" IsActive="False" />
+        <StackPanel x:Name="Empty" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+            <FontIcon Glyph="&#xE8F1;" FontSize="48" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            <TextBlock x:Name="EmptyText" Style="{StaticResource BodyStrongTextBlockStyle}" TextAlignment="Center" />
+            <Button x:Name="EmptyAction" HorizontalAlignment="Center" Content="Найти и скачать музыку" Click="EmptyAction_Click" />
+        </StackPanel>
+    </Grid>
+</Page>

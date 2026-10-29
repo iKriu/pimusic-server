@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Альбом или исполнитель из каталога (ещё не скачаны): треки со скачиванием, «Скачать всё». -->
+<Page
+    x:Class="PiMusic.Views.CatalogPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <ScrollViewer>
+            <StackPanel Padding="{StaticResource PagePadding}" Spacing="16">
+                <Grid ColumnSpacing="24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="CoverBox" Width="200" Height="200" CornerRadius="8" Background="{ThemeResource ControlAltFillColorTertiaryBrush}">
+                        <Grid>
+                            <FontIcon Glyph="&#xE93C;" FontSize="48" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <Image x:Name="Cover" Stretch="UniformToFill" />
+                        </Grid>
+                    </Border>
+                    <PersonPicture x:Name="Photo" Width="168" Height="168" Visibility="Collapsed" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Spacing="12">
+                        <StackPanel>
+                            <TextBlock x:Name="KindText" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock x:Name="TitleText" Style="{StaticResource TitleLargeTextBlockStyle}" TextWrapping="Wrap" MaxLines="3" />
+                            <TextBlock x:Name="InfoText" Style="{StaticResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <Button x:Name="DownloadAllButton" Style="{StaticResource AccentButtonStyle}" Click="DownloadAll_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE896;" FontSize="14" />
+                                <TextBlock x:Name="DownloadAllText" Text="Скачать альбом" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock x:Name="TracksHeader" Text="Популярные треки" Style="{StaticResource SubtitleTextBlockStyle}" Visibility="Collapsed" />
+                <ListView x:Name="Tracks" ItemTemplate="{StaticResource CatalogTrackRow}" SelectionMode="None" Margin="-12,0"
+                          AutomationProperties.Name="Треки" />
+                <TextBlock x:Name="AlbumsHeader" Text="Альбомы" Style="{StaticResource SubtitleTextBlockStyle}" Visibility="Collapsed" />
+                <GridView x:Name="Albums" ItemTemplate="{StaticResource CatalogAlbumTile}" SelectionMode="None" IsItemClickEnabled="True"
+                          ItemClick="Albums_ItemClick" Margin="-4,0" AutomationProperties.Name="Альбомы" />
+            </StackPanel>
+        </ScrollViewer>
+        <ProgressRing x:Name="Busy" IsActive="True" />
+    </Grid>
+</Page>

@@ -340,6 +340,7 @@ def upd(cfg):
     (d / "android.json").write_text('{"version":"1.0.4"}', encoding="utf-8")
     (d / "PiMusic_1.0.4_x64-setup.exe").write_bytes(bytes(range(256)) * 4)
     (d / "PiMusic_1.0.4_x64-setup.exe.sig").write_text("sig", encoding="utf-8")
+    (d / "windows-native.json.sig").write_text("msig", encoding="utf-8")
     (d / "pimusic-1.0.4.apk").write_bytes(b"PK" + b"\0" * 100)
     (d / "notes.txt").write_text("x", encoding="utf-8")
     (d / ".hidden.json").write_text("{}", encoding="utf-8")
@@ -360,6 +361,9 @@ async def test_updates_types_and_cache(client, upd):
     assert r.headers["Cache-Control"] == webapp.UPDATE_BINARY_CACHE and len(await r.read()) == 1024
     r = await client.get("/updates/PiMusic_1.0.4_x64-setup.exe.sig")
     assert r.status == 200 and r.headers["Content-Type"].startswith("text/plain") and await r.text() == "sig"
+    assert r.headers["Cache-Control"] == webapp.UPDATE_BINARY_CACHE
+    r = await client.get("/updates/windows-native.json.sig")  # подпись манифеста меняется вместе с ним
+    assert r.status == 200 and r.headers["Cache-Control"] == "no-cache" and await r.text() == "msig"
     r = await client.get("/updates/pimusic-1.0.4.apk")
     assert r.status == 200 and r.headers["Content-Type"] == "application/vnd.android.package-archive"
 

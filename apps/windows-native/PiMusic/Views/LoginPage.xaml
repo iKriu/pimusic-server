@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Вход через бота: код из 4 цифр крупно, QR для входа с телефона, опрос раз в 2 с (docs/api/README.md, «Вход»). -->
+<Page
+    x:Class="PiMusic.Views.LoginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="Transparent">
+
+    <ScrollViewer>
+        <Grid Padding="24">
+            <Border MaxWidth="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" CornerRadius="8"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <Image Source="ms-appx:///Assets/icon.png" Width="64" Height="64" HorizontalAlignment="Left" />
+                    <TextBlock Text="Вход в PiMusic" Style="{StaticResource TitleTextBlockStyle}" />
+                    <TextBlock x:Name="Hint" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="Аккаунт создаётся в Telegram-боте. Для входа откройте бота и подтвердите вход кодом." />
+
+                    <!-- Шаг 1: начать -->
+                    <StackPanel x:Name="StartPanel" Spacing="12">
+                        <Button x:Name="StartButton" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Stretch" Click="Start_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8BD;" FontSize="16" />
+                                <TextBlock Text="Войти через Telegram" />
+                            </StackPanel>
+                        </Button>
+                        <Expander x:Name="ServerExpander" Header="Сервер" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                            <StackPanel Spacing="8">
+                                <TextBox x:Name="ServerBox" Header="Адрес сервера PiMusic" PlaceholderText="https://music.example.com"
+                                         InputScope="Url" IsSpellCheckEnabled="False" />
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="В домашней сети можно указать http://адрес:порт." />
+                            </StackPanel>
+                        </Expander>
+                    </StackPanel>
+
+                    <!-- Шаг 2: код -->
+                    <StackPanel x:Name="CodePanel" Spacing="16" Visibility="Collapsed">
+                        <TextBlock TextWrapping="Wrap">
+                            <Run Text="В боте нажмите кнопку с этим кодом:" />
+                        </TextBlock>
+                        <TextBlock x:Name="CodeText" Style="{StaticResource DisplayTextBlockStyle}" CharacterSpacing="300"
+                                   HorizontalAlignment="Center" IsTextSelectionEnabled="True" AutomationProperties.Name="Код входа" />
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border CornerRadius="8" Background="White" Padding="8" Width="132" Height="132">
+                                <Image x:Name="QrImage" AutomationProperties.Name="QR-код для входа с телефона" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                <Button x:Name="OpenBotButton" Style="{StaticResource AccentButtonStyle}" Click="OpenBot_Click" HorizontalAlignment="Stretch">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE8A7;" FontSize="16" />
+                                        <TextBlock Text="Открыть бота" />
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="Или наведите камеру телефона на QR-код." />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <ProgressRing IsActive="True" Width="16" Height="16" />
+                            <TextBlock x:Name="WaitText" Text="Ждём подтверждения…" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <HyperlinkButton Content="Отмена" Click="Cancel_Click" Padding="0" />
+                    </StackPanel>
+
+                    <InfoBar x:Name="ErrorBar" Severity="Error" IsOpen="False" IsClosable="True" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>
