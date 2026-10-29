@@ -28,7 +28,7 @@
             </Button>
         </Grid>
 
-        <ListView x:Name="List" Grid.Row="1" Padding="24,0,24,24" SelectionMode="None" IsItemClickEnabled="True"
+        <ListView x:Name="List" Grid.Row="1" Padding="{StaticResource PageListPadding}" SelectionMode="None" IsItemClickEnabled="True"
                   ItemClick="List_ItemClick" ContextRequested="List_ContextRequested" AutomationProperties.Name="Радиостанции">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="data:Station">

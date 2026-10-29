@@ -63,11 +63,11 @@
 
             <ListView x:Name="QueueList" Grid.Row="1" ItemsSource="{x:Bind P.Queue}" ItemTemplate="{StaticResource TrackRow}"
                       SelectionMode="Single" DoubleTapped="QueueList_DoubleTapped" KeyDown="QueueList_KeyDown"
-                      ContextRequested="QueueList_ContextRequested" Margin="-12,0" AutomationProperties.Name="Очередь" />
+                      ContextRequested="QueueList_ContextRequested" Margin="-16,0" AutomationProperties.Name="Очередь" />
 
             <Grid x:Name="LyricsPanel" Grid.Row="1" Visibility="Collapsed">
                 <ListView x:Name="LyricsList" SelectionMode="Single" IsItemClickEnabled="True" ItemClick="LyricsList_ItemClick"
-                          Margin="-12,0" AutomationProperties.Name="Текст песни">
+                          Margin="-16,0" AutomationProperties.Name="Текст песни">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="data:LyricLine">
                             <TextBlock Text="{x:Bind Text}" Style="{StaticResource SubtitleTextBlockStyle}" TextWrapping="Wrap" Padding="0,6" />
@@ -88,7 +88,7 @@
             <VisualStateGroup>
                 <VisualState x:Name="Wide">
                     <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="1000" />
+                        <AdaptiveTrigger MinWindowWidth="900" />
                     </VisualState.StateTriggers>
                 </VisualState>
                 <VisualState x:Name="Narrow">

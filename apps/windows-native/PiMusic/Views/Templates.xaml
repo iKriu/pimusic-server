@@ -7,9 +7,23 @@
     xmlns:data="using:PiMusic.Data"
     xmlns:views="using:PiMusic.Views">
 
+    <!-- Сетка страниц: одна колонка от левого края области содержимого (как «Параметры» Windows 11).
+         Заголовок и содержимое начинаются с одного отступа PageGutter; у страниц-форм колонка не шире
+         PageContentMaxWidth (без учёта полей), у списков-медиатек — во всю ширину.
+         Ограничение ширины внутри ScrollViewer — только колонкой Grid (ColumnDefinition MaxWidth), а не MaxWidth
+         прямого потомка: если потомок уже́ области просмотра, ScrollViewer выравнивает его по DesiredSize
+         и колонка «уезжает» вправо на величину, зависящую от содержимого. -->
     <x:Double x:Key="PageGutter">36</x:Double>
+    <x:Double x:Key="PageContentMaxWidth">1000</x:Double>
     <Thickness x:Key="PagePadding">36,24,36,24</Thickness>
     <Thickness x:Key="PageHeaderMargin">36,24,36,12</Thickness>
+    <!-- Содержимое под заголовком, вынесенным из ScrollViewer (вкладки «Загрузок»). -->
+    <Thickness x:Key="PageBodyPadding">36,12,36,24</Thickness>
+    <!-- ListView: у ListViewItem 4 px поля + 12 px отступа, итого содержимое строки — на PageGutter. -->
+    <!-- Шапка в ListView.Header — с полем 16 слева: PageListPadding + 16 = PageGutter. -->
+    <Thickness x:Key="PageListPadding">20,0,20,24</Thickness>
+    <!-- GridView: плитки без поля слева (у GridViewItem поле 0,0,4,4). -->
+    <Thickness x:Key="PageTilesPadding">36,0,32,24</Thickness>
 
     <!-- Заглушка обложки: нота на нейтральной подложке, поверх — картинка (если есть). -->
     <DataTemplate x:Key="TrackRow" x:DataType="data:Track">

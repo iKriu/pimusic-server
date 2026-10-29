@@ -24,6 +24,8 @@ public sealed partial class OfflineBadge : UserControl
         Visibility = Visibility.Collapsed;
         Loaded += (_, _) =>
         {
+            // Loaded приходит и повторно (перенос в дереве) — без двойной подписки
+            OfflineDownloads.Instance.Changed -= Update;
             OfflineDownloads.Instance.Changed += Update;
             Update();
         };

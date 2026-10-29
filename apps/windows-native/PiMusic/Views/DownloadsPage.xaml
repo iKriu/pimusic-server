@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
 
         <!-- Заголовок и вкладки -->
-        <StackPanel Padding="{StaticResource PagePadding}" Spacing="8" MaxWidth="1072" HorizontalAlignment="Stretch">
+        <StackPanel Margin="{StaticResource PageHeaderMargin}" Spacing="8">
             <TextBlock Text="Загрузки" Style="{StaticResource TitleTextBlockStyle}" />
             <SelectorBar x:Name="Tabs" SelectionChanged="Tabs_SelectionChanged" Margin="-12,0,0,0">
                 <SelectorBarItem x:Name="TabDownload" Text="Скачивание" IsSelected="True">
@@ -35,8 +35,12 @@
             </SelectorBar>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1">
-            <Grid Padding="{StaticResource PagePadding}" MaxWidth="1072" HorizontalAlignment="Stretch">
+        <!-- Прямой потомок ScrollViewer — во всю ширину, ограничение — колонкой (см. PageContentMaxWidth в Templates.xaml). -->
+        <ScrollViewer Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+            <Grid Padding="{StaticResource PageBodyPadding}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MaxWidth="{StaticResource PageContentMaxWidth}" />
+                </Grid.ColumnDefinitions>
 
                 <!-- ============ Скачивание ============ -->
                 <StackPanel x:Name="DownloadPanel" Spacing="16">

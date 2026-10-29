@@ -65,7 +65,19 @@ public sealed class Api
     {
         if (string.IsNullOrEmpty(path)) return null;
         if (Server.Length == 0 && !path.Contains("://")) return null; // сервер ещё не выбран
-        return Uri.TryCreate(path, UriKind.Absolute, out var u) && u.Scheme.StartsWith("http") ? u : new Uri(Server + path);
+        // полный адрес — только http(s); относительный — от адреса сервера (битый адрес — без ссылки)
+        if (!path.StartsWith('/') && Uri.TryCreate(path, UriKind.Absolute, out var u))
+            return u.Scheme == Uri.UriSchemeHttps || u.Scheme == Uri.UriSchemeHttp ? u : null;
+        return Uri.TryCreate(Server + path, UriKind.Absolute, out var r) ? r : null;
+    }
+
+    /** Адрес запроса API; адрес сервера пустой или битый — ApiException, а не UriFormatException мимо обработчиков. */
+    private Uri ApiUri(string path)
+    {
+        if (Uri.TryCreate(Server + "/api" + path, UriKind.Absolute, out var u)
+            && (u.Scheme == Uri.UriSchemeHttps || u.Scheme == Uri.UriSchemeHttp))
+            return u;
+        throw new ApiException(0, "bad_server", Server.Length == 0 ? "Не указан адрес сервера" : "Неверный адрес сервера");
     }
 
     // ---------------------------------------------------------------- транспорт
@@ -77,7 +89,7 @@ public sealed class Api
     private async Task<T> Exec<T>(HttpClient http, HttpMethod method, string path, HttpContent? content, bool auth,
         int[]? partialOk, CancellationToken ct)
     {
-        using var req = new HttpRequestMessage(method, Server + "/api" + path);
+        using var req = new HttpRequestMessage(method, ApiUri(path));
         if (auth && _s.Token is { } token) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         req.Content = content;
         HttpResponseMessage resp;

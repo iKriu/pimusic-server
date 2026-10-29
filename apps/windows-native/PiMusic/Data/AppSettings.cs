@@ -64,8 +64,12 @@ public sealed class AppSettings
     {
         try
         {
-            if (File.Exists(FilePath))
-                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), Json.Options) ?? new AppSettings();
+            if (File.Exists(FilePath) && JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), Json.Options) is { } s)
+            {
+                // "server": null в файле — не роняем Api.Server
+                s.Server ??= DefaultServer;
+                return s;
+            }
         }
         catch (Exception) { /* испорченный файл — начинаем с настроек по умолчанию */ }
         return new AppSettings();

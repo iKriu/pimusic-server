@@ -79,7 +79,7 @@
             </StackPanel>
         </Grid>
 
-        <ListView x:Name="List" Grid.Row="1" Padding="24,0,24,24" SelectionMode="Extended" ItemTemplate="{StaticResource OfflineRow}"
+        <ListView x:Name="List" Grid.Row="1" Padding="{StaticResource PageListPadding}" SelectionMode="Extended" ItemTemplate="{StaticResource OfflineRow}"
                   DoubleTapped="List_DoubleTapped" KeyDown="List_KeyDown" ContextRequested="List_ContextRequested"
                   AutomationProperties.Name="Скачанные треки">
             <ListView.GroupStyle>

@@ -22,7 +22,7 @@
             <ComboBox x:Name="SortBox" Grid.Column="1" VerticalAlignment="Bottom" MinWidth="200" SelectionChanged="SortBox_SelectionChanged"
                       AutomationProperties.Name="Сортировка" />
         </Grid>
-        <GridView x:Name="Tiles" Grid.Row="1" Padding="32,0,32,24" IsItemClickEnabled="True" SelectionMode="None"
+        <GridView x:Name="Tiles" Grid.Row="1" Padding="{StaticResource PageTilesPadding}" IsItemClickEnabled="True" SelectionMode="None"
                   ItemClick="Grid_ItemClick" AutomationProperties.Name="Список" />
         <ProgressRing x:Name="Busy" Grid.Row="1" IsActive="True" />
     </Grid>

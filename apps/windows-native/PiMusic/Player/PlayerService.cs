@@ -73,6 +73,10 @@ public sealed partial class PlayerService : ObservableObject
     private double _pendingSeek;
     /** на этом треке уже обновляли ссылку после ошибки */
     private bool _retried;
+    /** текущая загрузка — мимо скачанного файла (он не открылся, играем из сети) */
+    private bool _noLocal;
+    /** текущий источник — скачанный файл на диске */
+    private bool _fromDisk;
     /** ошибок подряд (защита от зацикливания на битой очереди) */
     private int _failStreak;
     private bool _lastHasPrevious;
@@ -466,6 +470,7 @@ public sealed partial class PlayerService : ObservableObject
         _saveTimer?.Stop();
         if (_settingsTimer?.IsRunning == true) { _settingsTimer.Stop(); SaveSettings(); }
         SaveQueue(sync: true);
+        OfflineDownloads.Instance.Flush();
         StopWavePoll();
         _ge?.Dispose();
         _ge = null;
@@ -477,12 +482,13 @@ public sealed partial class PlayerService : ObservableObject
 
     // ---------------------------------------------------------------- загрузка трека
 
-    private void Load(int i, bool play, double pos = 0, bool retry = false)
+    private void Load(int i, bool play, double pos = 0, bool retry = false, bool noLocal = false)
     {
         if (_mpe is null || _ui is null || i < 0 || i >= Queue.Count) return;
         var t = Queue[i];
         _gen++;
         _retried = retry;
+        _noLocal = noLocal;
         _wantPlay = play;
         _pendingSeek = pos;
         Index = i;
@@ -500,7 +506,9 @@ public sealed partial class PlayerService : ObservableObject
         if (!ReferenceEquals(engine, _engine)) _engine?.Close();
         _engine = engine;
         // скачанный на компьютер — с диска (играет и без сети)
-        var uri = t.Live ? t.StreamUri : OfflineDownloads.Instance.LocalUri(t.Id) ?? t.StreamUri;
+        var local = t.Live || noLocal ? null : OfflineDownloads.Instance.LocalUri(t.Id);
+        _fromDisk = local is not null;
+        var uri = t.Live ? t.StreamUri : local ?? t.StreamUri;
         if (uri is null)
         {
             engine.Close();
@@ -631,8 +639,14 @@ public sealed partial class PlayerService : ObservableObject
             // AudioGraph не открыл источник — тот же трек обычным плеером (без эквалайзера); граф — снова через минуту
             _forceMp = true;
             _graphDownUntil = DateTime.UtcNow.AddMinutes(1);
-            Load(i, play, IsLive ? 0 : pos, retry: true);
+            Load(i, play, IsLive ? 0 : pos, retry: true, noLocal: _noLocal);
             _retried = false;
+            return;
+        }
+        if (_fromDisk && t.StreamUri is not null)
+        {
+            // скачанный файл не открылся (битый) — тот же трек из сети; повторно с диска в этой загрузке не берём
+            Load(i, play, pos, noLocal: true);
             return;
         }
         if (IsLive)
@@ -655,7 +669,7 @@ public sealed partial class PlayerService : ObservableObject
                 if (r.Items.FirstOrDefault(x => x.Id == t.Id) is { StreamUri: not null } fresh)
                 {
                     Queue[i] = fresh;
-                    Load(i, play, pos, retry: true);
+                    Load(i, play, pos, retry: true, noLocal: _noLocal);
                     return;
                 }
             }

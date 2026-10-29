@@ -5,9 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
-        <ListView x:Name="List" ItemTemplate="{StaticResource TrackRow}" Padding="24,0,24,24" AutomationProperties.Name="Треки альбома">
+        <ListView x:Name="List" ItemTemplate="{StaticResource TrackRow}" Padding="{StaticResource PageListPadding}" AutomationProperties.Name="Треки альбома">
             <ListView.Header>
-                <Grid Margin="12,24,12,16" ColumnSpacing="24">
+                <Grid Margin="16,24,16,16" ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />

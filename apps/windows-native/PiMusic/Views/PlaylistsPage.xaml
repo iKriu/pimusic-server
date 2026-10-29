@@ -57,7 +57,7 @@
                 </Button>
             </StackPanel>
         </Grid>
-        <GridView x:Name="Tiles" Grid.Row="1" Padding="32,0,32,24" IsItemClickEnabled="True" SelectionMode="None"
+        <GridView x:Name="Tiles" Grid.Row="1" Padding="{StaticResource PageTilesPadding}" IsItemClickEnabled="True" SelectionMode="None"
                   ItemTemplate="{StaticResource PlaylistTile}" ItemClick="Tiles_ItemClick" ContextRequested="Tiles_ContextRequested"
                   AutomationProperties.Name="Плейлисты" />
         <StackPanel x:Name="Empty" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" MaxWidth="360">

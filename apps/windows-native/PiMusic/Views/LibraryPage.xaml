@@ -36,9 +36,14 @@
                         <TextBlock Text="Перемешать" />
                     </StackPanel>
                 </Button>
-                <AutoSuggestBox x:Name="FilterBox" Grid.Column="2" MaxWidth="360" HorizontalAlignment="Left" MinWidth="200"
-                                PlaceholderText="Фильтр по названию, исполнителю, альбому" QueryIcon="Filter"
-                                TextChanged="FilterBox_TextChanged" AutomationProperties.Name="Фильтр" />
+                <!-- Фильтр — до 360 px от левого края колонки, ширина не зависит от введённого текста. -->
+                <Grid Grid.Column="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="360" />
+                    </Grid.ColumnDefinitions>
+                    <AutoSuggestBox x:Name="FilterBox" PlaceholderText="Фильтр по названию, исполнителю, альбому" QueryIcon="Filter"
+                                    TextChanged="FilterBox_TextChanged" AutomationProperties.Name="Фильтр" />
+                </Grid>
                 <ComboBox x:Name="GenreBox" Grid.Column="3" MinWidth="160" PlaceholderText="Все жанры" SelectionChanged="Filter_Changed"
                           AutomationProperties.Name="Жанр" />
                 <ComboBox x:Name="SortBox" Grid.Column="4" MinWidth="200" SelectionChanged="Filter_Changed" AutomationProperties.Name="Сортировка">
@@ -53,7 +58,7 @@
             </Grid>
         </StackPanel>
 
-        <ListView x:Name="List" Grid.Row="1" Padding="24,0,24,24" ItemTemplate="{StaticResource TrackRow}"
+        <ListView x:Name="List" Grid.Row="1" Padding="{StaticResource PageListPadding}" ItemTemplate="{StaticResource TrackRow}"
                   AutomationProperties.Name="Треки медиатеки" />
         <ProgressRing x:Name="Busy" Grid.Row="1" IsActive="False" />
         <StackPanel x:Name="Empty" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">

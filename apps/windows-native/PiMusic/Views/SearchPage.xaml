@@ -8,9 +8,15 @@
     <ScrollViewer>
         <StackPanel Padding="{StaticResource PagePadding}" Spacing="16">
             <TextBlock Text="Найти и скачать" Style="{StaticResource TitleTextBlockStyle}" />
-            <AutoSuggestBox x:Name="QueryBox" MaxWidth="640" HorizontalAlignment="Left" MinWidth="320" QueryIcon="Find"
-                            PlaceholderText="Исполнитель, песня, альбом или ссылка (Spotify, YouTube, Яндекс Музыка…)"
-                            QuerySubmitted="QueryBox_QuerySubmitted" AutomationProperties.Name="Что найти" />
+            <!-- Поле — до 640 px от левого края и не меняет ширину от введённого текста (HorizontalAlignment="Left" сжимало бы его). -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MaxWidth="640" />
+                </Grid.ColumnDefinitions>
+                <AutoSuggestBox x:Name="QueryBox" QueryIcon="Find"
+                                PlaceholderText="Исполнитель, песня, альбом или ссылка (Spotify, YouTube, Яндекс Музыка…)"
+                                QuerySubmitted="QueryBox_QuerySubmitted" AutomationProperties.Name="Что найти" />
+            </Grid>
 
             <InfoBar x:Name="LinkBar" IsOpen="False" IsClosable="False" Severity="Informational" Title="Ссылка"
                      Message="Скачать музыку по этой ссылке в медиатеку?">
@@ -22,7 +28,7 @@
             <!-- Своя медиатека -->
             <StackPanel x:Name="LibrarySection" Visibility="Collapsed" Spacing="4">
                 <TextBlock Text="В вашей медиатеке" Style="{StaticResource SubtitleTextBlockStyle}" />
-                <ListView x:Name="LibraryList" ItemTemplate="{StaticResource TrackRow}" Margin="-12,0" AutomationProperties.Name="В медиатеке" />
+                <ListView x:Name="LibraryList" ItemTemplate="{StaticResource TrackRow}" Margin="-16,0" AutomationProperties.Name="В медиатеке" />
             </StackPanel>
 
             <!-- Каталог -->
@@ -44,12 +50,12 @@
                         </StackPanel>
                     </Button>
                 </Grid>
-                <ListView x:Name="CatalogTracks" ItemTemplate="{StaticResource CatalogTrackRow}" SelectionMode="None" Margin="-12,0"
+                <ListView x:Name="CatalogTracks" ItemTemplate="{StaticResource CatalogTrackRow}" SelectionMode="None" Margin="-16,0"
                           AutomationProperties.Name="Треки каталога" />
                 <GridView x:Name="CatalogAlbums" ItemTemplate="{StaticResource CatalogAlbumTile}" Visibility="Collapsed" SelectionMode="None"
-                          IsItemClickEnabled="True" ItemClick="CatalogAlbums_ItemClick" Margin="-4,0" AutomationProperties.Name="Альбомы каталога" />
+                          IsItemClickEnabled="True" ItemClick="CatalogAlbums_ItemClick" Margin="0" AutomationProperties.Name="Альбомы каталога" />
                 <GridView x:Name="CatalogArtists" ItemTemplate="{StaticResource CatalogArtistTile}" Visibility="Collapsed" SelectionMode="None"
-                          IsItemClickEnabled="True" ItemClick="CatalogArtists_ItemClick" Margin="-4,0" AutomationProperties.Name="Исполнители каталога" />
+                          IsItemClickEnabled="True" ItemClick="CatalogArtists_ItemClick" Margin="0" AutomationProperties.Name="Исполнители каталога" />
             </StackPanel>
 
             <ProgressRing x:Name="Busy" IsActive="False" HorizontalAlignment="Left" />

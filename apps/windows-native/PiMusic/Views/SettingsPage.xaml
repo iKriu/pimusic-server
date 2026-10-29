@@ -13,112 +13,118 @@
         </Style>
     </Page.Resources>
 
+    <!-- Прямой потомок ScrollViewer — во всю ширину, ограничение — колонкой (см. PageContentMaxWidth в Templates.xaml). -->
     <ScrollViewer HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="1072" HorizontalAlignment="Stretch" Spacing="4">
-            <TextBlock Text="Параметры" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8" />
+        <Grid Padding="{StaticResource PagePadding}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MaxWidth="{StaticResource PageContentMaxWidth}" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Параметры" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8" />
 
-            <!-- Аккаунт -->
-            <TextBlock Text="Аккаунт" Style="{StaticResource SectionHeader}" />
-            <tk:SettingsCard x:Name="AccountCard" Header="Вход" Description="…">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE77B;" />
-                </tk:SettingsCard.HeaderIcon>
-                <Button Content="Выйти" Click="Logout_Click" />
-            </tk:SettingsCard>
-            <tk:SettingsExpander x:Name="DevicesExpander" Header="Устройства" Description="Где выполнен вход в PiMusic" Expanded="Devices_Expanded">
-                <tk:SettingsExpander.HeaderIcon>
-                    <FontIcon Glyph="&#xE7F4;" />
-                </tk:SettingsExpander.HeaderIcon>
-                <tk:SettingsExpander.ItemsHeader>
-                    <ProgressBar x:Name="DevicesLoading" IsIndeterminate="True" Visibility="Collapsed" />
-                </tk:SettingsExpander.ItemsHeader>
-                <tk:SettingsExpander.ItemTemplate>
-                    <DataTemplate x:DataType="data:Device">
-                        <tk:SettingsCard Header="{x:Bind Name}" Description="{x:Bind Details}">
-                            <Button Content="Выйти на устройстве" Tag="{x:Bind}" Click="Revoke_Click" IsEnabled="{x:Bind CanRevoke}" />
+                <!-- Аккаунт -->
+                <TextBlock Text="Аккаунт" Style="{StaticResource SectionHeader}" />
+                <tk:SettingsCard x:Name="AccountCard" Header="Вход" Description="…">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE77B;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <Button Content="Выйти" Click="Logout_Click" />
+                </tk:SettingsCard>
+                <tk:SettingsExpander x:Name="DevicesExpander" Header="Устройства" Description="Где выполнен вход в PiMusic" Expanded="Devices_Expanded">
+                    <tk:SettingsExpander.HeaderIcon>
+                        <FontIcon Glyph="&#xE7F4;" />
+                    </tk:SettingsExpander.HeaderIcon>
+                    <tk:SettingsExpander.ItemsHeader>
+                        <ProgressBar x:Name="DevicesLoading" IsIndeterminate="True" Visibility="Collapsed" />
+                    </tk:SettingsExpander.ItemsHeader>
+                    <tk:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="data:Device">
+                            <tk:SettingsCard Header="{x:Bind Name}" Description="{x:Bind Details}">
+                                <Button Content="Выйти на устройстве" Tag="{x:Bind}" Click="Revoke_Click" IsEnabled="{x:Bind CanRevoke}" />
+                            </tk:SettingsCard>
+                        </DataTemplate>
+                    </tk:SettingsExpander.ItemTemplate>
+                </tk:SettingsExpander>
+                <tk:SettingsCard Header="Сервер" Description="{x:Bind Server}">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE968;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <Button Content="Сменить сервер" Click="ChangeServer_Click" />
+                </tk:SettingsCard>
+
+                <!-- Воспроизведение -->
+                <TextBlock Text="Воспроизведение" Style="{StaticResource SectionHeader}" />
+                <tk:SettingsCard Header="Выравнивать громкость" Description="Треки звучат одинаково громко (ReplayGain, −14 LUFS)">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE767;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <ToggleSwitch x:Name="NormalizeSwitch" Toggled="NormalizeSwitch_Toggled" OnContent="Вкл." OffContent="Выкл." />
+                </tk:SettingsCard>
+                <tk:SettingsCard Header="Эквалайзер" Description="10 полос, пресеты, общий звук на всех устройствах" IsClickEnabled="True"
+                                 Click="Equalizer_Click">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE9E9;" />
+                    </tk:SettingsCard.HeaderIcon>
+                </tk:SettingsCard>
+
+                <!-- Без сети -->
+                <TextBlock Text="Без сети" Style="{StaticResource SectionHeader}" />
+                <tk:SettingsCard x:Name="OfflineCard" Header="Скачанное на компьютере" Description="…" IsClickEnabled="True" Click="Offline_Click">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE78C;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Открыть папку" Click="OfflineFolder_Click" />
+                        <Button x:Name="ClearOfflineButton" Content="Очистить скачанное" Click="ClearOffline_Click" />
+                    </StackPanel>
+                </tk:SettingsCard>
+
+                <!-- Приложение -->
+                <TextBlock Text="Приложение" Style="{StaticResource SectionHeader}" />
+                <tk:SettingsCard Header="Тема" Description="Как в Windows или всегда светлая/тёмная">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE790;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <ComboBox x:Name="ThemeBox" MinWidth="180" SelectionChanged="ThemeBox_SelectionChanged">
+                        <ComboBoxItem Content="Как в системе" Tag="system" />
+                        <ComboBoxItem Content="Светлая" Tag="light" />
+                        <ComboBoxItem Content="Тёмная" Tag="dark" />
+                    </ComboBox>
+                </tk:SettingsCard>
+                <tk:SettingsCard Header="Сворачивать в трей при закрытии" Description="Музыка продолжит играть, PiMusic останется в области уведомлений">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE8A7;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <ToggleSwitch x:Name="TraySwitch" Toggled="TraySwitch_Toggled" OnContent="Вкл." OffContent="Выкл." />
+                </tk:SettingsCard>
+                <tk:SettingsCard Header="Уведомлять о новом треке" Description="Когда окно скрыто или неактивно">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xEA8F;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <ToggleSwitch x:Name="NotifySwitch" Toggled="NotifySwitch_Toggled" OnContent="Вкл." OffContent="Выкл." />
+                </tk:SettingsCard>
+
+                <!-- О программе -->
+                <TextBlock Text="О программе" Style="{StaticResource SectionHeader}" />
+                <tk:SettingsExpander Header="PiMusic для Windows" Description="{x:Bind VersionText}" IsExpanded="True">
+                    <tk:SettingsExpander.HeaderIcon>
+                        <ImageIcon Source="ms-appx:///Assets/icon.png" />
+                    </tk:SettingsExpander.HeaderIcon>
+                    <Button x:Name="CheckButton" Content="Проверить обновления" Click="Check_Click" />
+                    <tk:SettingsExpander.Items>
+                        <tk:SettingsCard x:Name="UpdateCard" Visibility="Collapsed" Header="Доступно обновление">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ProgressBar x:Name="UpdateProgress" Width="160" Maximum="1" Visibility="Collapsed" VerticalAlignment="Center" />
+                                <Button x:Name="SkipButton" Content="Пропустить" Click="Skip_Click" />
+                                <Button x:Name="InstallButton" Style="{StaticResource AccentButtonStyle}" Content="Установить" Click="Install_Click" />
+                            </StackPanel>
                         </tk:SettingsCard>
-                    </DataTemplate>
-                </tk:SettingsExpander.ItemTemplate>
-            </tk:SettingsExpander>
-            <tk:SettingsCard Header="Сервер" Description="{x:Bind Server}">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE968;" />
-                </tk:SettingsCard.HeaderIcon>
-                <Button Content="Сменить сервер" Click="ChangeServer_Click" />
-            </tk:SettingsCard>
-
-            <!-- Воспроизведение -->
-            <TextBlock Text="Воспроизведение" Style="{StaticResource SectionHeader}" />
-            <tk:SettingsCard Header="Выравнивать громкость" Description="Треки звучат одинаково громко (ReplayGain, −14 LUFS)">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE767;" />
-                </tk:SettingsCard.HeaderIcon>
-                <ToggleSwitch x:Name="NormalizeSwitch" Toggled="NormalizeSwitch_Toggled" OnContent="Вкл." OffContent="Выкл." />
-            </tk:SettingsCard>
-            <tk:SettingsCard Header="Эквалайзер" Description="10 полос, пресеты, общий звук на всех устройствах" IsClickEnabled="True"
-                             Click="Equalizer_Click">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE9E9;" />
-                </tk:SettingsCard.HeaderIcon>
-            </tk:SettingsCard>
-
-            <!-- Без сети -->
-            <TextBlock Text="Без сети" Style="{StaticResource SectionHeader}" />
-            <tk:SettingsCard x:Name="OfflineCard" Header="Скачанное на компьютере" Description="…" IsClickEnabled="True" Click="Offline_Click">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE78C;" />
-                </tk:SettingsCard.HeaderIcon>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Открыть папку" Click="OfflineFolder_Click" />
-                    <Button x:Name="ClearOfflineButton" Content="Очистить скачанное" Click="ClearOffline_Click" />
-                </StackPanel>
-            </tk:SettingsCard>
-
-            <!-- Приложение -->
-            <TextBlock Text="Приложение" Style="{StaticResource SectionHeader}" />
-            <tk:SettingsCard Header="Тема" Description="Как в Windows или всегда светлая/тёмная">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE790;" />
-                </tk:SettingsCard.HeaderIcon>
-                <ComboBox x:Name="ThemeBox" MinWidth="180" SelectionChanged="ThemeBox_SelectionChanged">
-                    <ComboBoxItem Content="Как в системе" Tag="system" />
-                    <ComboBoxItem Content="Светлая" Tag="light" />
-                    <ComboBoxItem Content="Тёмная" Tag="dark" />
-                </ComboBox>
-            </tk:SettingsCard>
-            <tk:SettingsCard Header="Сворачивать в трей при закрытии" Description="Музыка продолжит играть, PiMusic останется в области уведомлений">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE8A7;" />
-                </tk:SettingsCard.HeaderIcon>
-                <ToggleSwitch x:Name="TraySwitch" Toggled="TraySwitch_Toggled" OnContent="Вкл." OffContent="Выкл." />
-            </tk:SettingsCard>
-            <tk:SettingsCard Header="Уведомлять о новом треке" Description="Когда окно скрыто или неактивно">
-                <tk:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xEA8F;" />
-                </tk:SettingsCard.HeaderIcon>
-                <ToggleSwitch x:Name="NotifySwitch" Toggled="NotifySwitch_Toggled" OnContent="Вкл." OffContent="Выкл." />
-            </tk:SettingsCard>
-
-            <!-- О программе -->
-            <TextBlock Text="О программе" Style="{StaticResource SectionHeader}" />
-            <tk:SettingsExpander Header="PiMusic для Windows" Description="{x:Bind VersionText}" IsExpanded="True">
-                <tk:SettingsExpander.HeaderIcon>
-                    <ImageIcon Source="ms-appx:///Assets/icon.png" />
-                </tk:SettingsExpander.HeaderIcon>
-                <Button x:Name="CheckButton" Content="Проверить обновления" Click="Check_Click" />
-                <tk:SettingsExpander.Items>
-                    <tk:SettingsCard x:Name="UpdateCard" Visibility="Collapsed" Header="Доступно обновление">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <ProgressBar x:Name="UpdateProgress" Width="160" Maximum="1" Visibility="Collapsed" VerticalAlignment="Center" />
-                            <Button x:Name="SkipButton" Content="Пропустить" Click="Skip_Click" />
-                            <Button x:Name="InstallButton" Style="{StaticResource AccentButtonStyle}" Content="Установить" Click="Install_Click" />
-                        </StackPanel>
-                    </tk:SettingsCard>
-                    <tk:SettingsCard Header="Выход из PiMusic" Description="Закрыть приложение и остановить музыку">
-                        <Button Content="Выйти из приложения" Click="Exit_Click" />
-                    </tk:SettingsCard>
-                </tk:SettingsExpander.Items>
-            </tk:SettingsExpander>
-        </StackPanel>
+                        <tk:SettingsCard Header="Выход из PiMusic" Description="Закрыть приложение и остановить музыку">
+                            <Button Content="Выйти из приложения" Click="Exit_Click" />
+                        </tk:SettingsCard>
+                    </tk:SettingsExpander.Items>
+                </tk:SettingsExpander>
+            </StackPanel>
+        </Grid>
     </ScrollViewer>
 </Page>

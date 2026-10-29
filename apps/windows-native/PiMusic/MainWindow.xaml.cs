@@ -77,6 +77,8 @@ public sealed partial class MainWindow : Window
         ContentFrame.Navigate(typeof(LibraryPage));
         ActivityWatcher.Start();
         StartSettingsSync();
+        // скачивание на компьютер: очередь ждала входа
+        OfflineDownloads.Instance.Resume();
     }
 
     private DispatcherQueueTimerHolder? _syncTimer;

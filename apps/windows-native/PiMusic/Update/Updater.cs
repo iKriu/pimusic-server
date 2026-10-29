@@ -25,12 +25,16 @@ public sealed partial class Updater
     private const string ManifestUrl = "https://github.com/" + Repo + "/releases/latest/download/windows-native.json";
     private static readonly string[] AllowedHosts = ["github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"];
     private const int MaxRedirects = 5;
+    private const string InstallerPath = "/" + Repo + "/releases/download/";
+    /** больше манифест и подпись не бывают: защита от бесконечного ответа */
+    private const int MaxManifestBytes = 64 * 1024;
     private const long CheckIntervalSeconds = 24 * 3600;
 
     /**
      * Публичный ключ подписи манифеста: ed25519, 32 байта в base64 (44 символа). Своя сборка из форка — свой ключ:
      * `openssl genpkey -algorithm ed25519` (закрытый ключ — только у вас), публичный — сюда и Repo — на свой
-     * репозиторий (apps/build/release-manifests.sh). Обновление предлагается только при верной подписи
+     * репозиторий (apps/build/release-manifests.sh). Пустая строка — обновления отключены (без подписи не ставим).
+     * Обновление предлагается только при верной подписи
      * windows-native.json.sig (base64 от 64 байт подписи над точными байтами манифеста).
      */
     private const string ManifestPublicKey = "6+nytMs179e2js+DDvQ/DERlqGHRUwEEENOaE9xHYUw=";
@@ -62,13 +66,18 @@ public sealed partial class Updater
      */
     public async Task<UpdateInfo?> CheckAsync(bool manual)
     {
+        if (ManifestPublicKey.Length == 0)
+        {
+            if (manual) throw new InvalidOperationException("Обновления отключены: в этой сборке нет ключа подписи");
+            return null;
+        }
         var s = AppSettings.Current;
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         if (!manual && now - s.LastUpdateCheck < CheckIntervalSeconds) return null;
         try
         {
             var bytes = await GetManifestBytesAsync().ConfigureAwait(false);
-            if (ManifestPublicKey.Length > 0 && !await VerifyAsync(bytes, ManifestPublicKey).ConfigureAwait(false))
+            if (!await VerifyAsync(bytes, ManifestPublicKey).ConfigureAwait(false))
             {
                 // Публикация могла попасть между чтением манифеста и подписи: один повтор с чистого листа.
                 await Task.Delay(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
@@ -95,9 +104,25 @@ public sealed partial class Updater
     /** Свежий манифест байтами (в обход кэша). */
     private async Task<byte[]> GetManifestBytesAsync()
     {
-        using var resp = await GetAsync(Fresh(ManifestUrl), "манифеста", HttpCompletionOption.ResponseContentRead, default).ConfigureAwait(false);
+        using var resp = await GetAsync(Fresh(ManifestUrl), "манифеста", HttpCompletionOption.ResponseHeadersRead, default).ConfigureAwait(false);
         if (resp.StatusCode != HttpStatusCode.OK) throw new InvalidOperationException($"Сервер ответил {(int)resp.StatusCode}");
-        return await resp.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+        return await ReadLimitedAsync(resp).ConfigureAwait(false);
+    }
+
+    /** Тело небольшого ответа (манифест, подпись) не больше MaxManifestBytes. */
+    private static async Task<byte[]> ReadLimitedAsync(HttpResponseMessage resp)
+    {
+        if (resp.Content.Headers.ContentLength > MaxManifestBytes) throw new InvalidOperationException("Манифест обновлений слишком большой");
+        await using var src = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var ms = new MemoryStream();
+        var buf = new byte[8192];
+        int n;
+        while ((n = await src.ReadAsync(buf).ConfigureAwait(false)) > 0)
+        {
+            if (ms.Length + n > MaxManifestBytes) throw new InvalidOperationException("Манифест обновлений слишком большой");
+            ms.Write(buf, 0, n);
+        }
+        return ms.ToArray();
     }
 
     /** GET с ручными перенаправлениями: каждый шаг — https и хост из AllowedHosts. */
@@ -119,9 +144,9 @@ public sealed partial class Updater
     /** Скачать windows-native.json.sig и проверить подпись над байтами манифеста; нет файла / не base64 — false. */
     private async Task<bool> VerifyAsync(byte[] manifest, string publicKey)
     {
-        using var resp = await GetAsync(Fresh(ManifestUrl + ".sig"), "подписи", HttpCompletionOption.ResponseContentRead, default).ConfigureAwait(false);
+        using var resp = await GetAsync(Fresh(ManifestUrl + ".sig"), "подписи", HttpCompletionOption.ResponseHeadersRead, default).ConfigureAwait(false);
         if (resp.StatusCode != HttpStatusCode.OK) return false;
-        var sig = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+        var sig = Encoding.UTF8.GetString(await ReadLimitedAsync(resp).ConfigureAwait(false));
         return ManifestSignature.Verify(manifest, sig, publicKey);
     }
 
@@ -131,7 +156,8 @@ public sealed partial class Updater
     /** Скачать установщик, сверить sha256 и размер, запустить тихую установку и закрыть приложение. */
     public async Task InstallAsync(UpdateInfo info, IProgress<double> progress, CancellationToken ct)
     {
-        RequireOwnHost(info.Url, "установщика");
+        if (ManifestPublicKey.Length == 0) throw new InvalidOperationException("Обновления отключены: в этой сборке нет ключа подписи");
+        RequireInstallerUrl(info.Url);
         var name = Path.GetFileName(new Uri(info.Url).AbsolutePath);
         if (!SafeName().IsMatch(name) || !name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Недопустимое имя файла установщика");
@@ -156,6 +182,7 @@ public sealed partial class Updater
                     await dst.WriteAsync(buf.AsMemory(0, n), ct);
                     sha.TransformBlock(buf, 0, n, null, 0);
                     done += n;
+                    if (info.Size > 0 && done > info.Size) throw new InvalidOperationException("Размер файла не совпал с манифестом");
                     if (total > 0) progress.Report(Math.Min(1.0, (double)done / total));
                 }
             }
@@ -203,9 +230,7 @@ public sealed partial class Updater
             long size = r.TryGetProperty("size", out var sz) && sz.ValueKind == JsonValueKind.Number ? sz.GetInt64() : 0;
             if (ParseVersion(version) is null || url.Length == 0 || !Sha256Hex().IsMatch(sha))
                 throw new InvalidOperationException("Манифест обновлений повреждён");
-            RequireOwnHost(url, "установщика");
-            if (!url.StartsWith("https://github.com/" + Repo + "/releases/download/", StringComparison.Ordinal))
-                throw new InvalidOperationException("Установщик не из выпусков " + Repo);
+            RequireInstallerUrl(url);
             return new UpdateInfo(version, Str("notes"), url, sha, size);
         }
         catch (JsonException)
@@ -217,8 +242,18 @@ public sealed partial class Updater
     private static void RequireOwnHost(string url, string what)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var u) || u.Scheme != Uri.UriSchemeHttps
-            || !AllowedHosts.Contains(u.Host, StringComparer.OrdinalIgnoreCase))
+            || !AllowedHosts.Contains(u.Host, StringComparer.OrdinalIgnoreCase) || !u.IsDefaultPort || u.UserInfo.Length > 0)
             throw new InvalidOperationException($"Адрес {what} не на GitHub");
+    }
+
+    /** Установщик — только из выпусков Repo на github.com: проверяем разобранный адрес, а не строку (обход через ..). */
+    private static void RequireInstallerUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var u) || u.Scheme != Uri.UriSchemeHttps
+            || !string.Equals(u.Host, "github.com", StringComparison.OrdinalIgnoreCase) || !u.IsDefaultPort || u.UserInfo.Length > 0
+            || !u.AbsolutePath.StartsWith(InstallerPath, StringComparison.Ordinal) || u.AbsolutePath.Contains("..")
+            || url.Contains("..") || url.Contains("%2e", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Установщик не из выпусков " + Repo);
     }
 
     private static Version? ParseVersion(string v)

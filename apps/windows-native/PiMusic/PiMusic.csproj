@@ -23,7 +23,7 @@
     <LangVersion>latest</LangVersion>
     <!-- эквалайзер обрабатывает отсчёты AudioGraph по указателю -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <!-- в сборку не попадают пути машины сборщика (PDB, трассировки исключений) -->
     <PathMap>$(MSBuildProjectDirectory)=PiMusic</PathMap>
     <Deterministic>true</Deterministic>

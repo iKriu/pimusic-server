@@ -6,10 +6,10 @@
     xmlns:views="using:PiMusic.Views">
 
     <Grid>
-        <ListView x:Name="List" ItemTemplate="{StaticResource TrackRow}" Padding="24,0,24,24" AutomationProperties.Name="Треки плейлиста"
+        <ListView x:Name="List" ItemTemplate="{StaticResource TrackRow}" Padding="{StaticResource PageListPadding}" AutomationProperties.Name="Треки плейлиста"
                   DragItemsCompleted="List_DragItemsCompleted">
             <ListView.Header>
-                <StackPanel Spacing="12" Margin="12,24,12,8">
+                <StackPanel Spacing="12" Margin="16,24,16,8">
                     <Grid ColumnSpacing="24">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />

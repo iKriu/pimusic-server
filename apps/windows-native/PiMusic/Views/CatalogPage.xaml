@@ -36,11 +36,11 @@
                 </Grid>
 
                 <TextBlock x:Name="TracksHeader" Text="Популярные треки" Style="{StaticResource SubtitleTextBlockStyle}" Visibility="Collapsed" />
-                <ListView x:Name="Tracks" ItemTemplate="{StaticResource CatalogTrackRow}" SelectionMode="None" Margin="-12,0"
+                <ListView x:Name="Tracks" ItemTemplate="{StaticResource CatalogTrackRow}" SelectionMode="None" Margin="-16,0"
                           AutomationProperties.Name="Треки" />
                 <TextBlock x:Name="AlbumsHeader" Text="Альбомы" Style="{StaticResource SubtitleTextBlockStyle}" Visibility="Collapsed" />
                 <GridView x:Name="Albums" ItemTemplate="{StaticResource CatalogAlbumTile}" SelectionMode="None" IsItemClickEnabled="True"
-                          ItemClick="Albums_ItemClick" Margin="-4,0" AutomationProperties.Name="Альбомы" />
+                          ItemClick="Albums_ItemClick" Margin="0" AutomationProperties.Name="Альбомы" />
             </StackPanel>
         </ScrollViewer>
         <ProgressRing x:Name="Busy" IsActive="True" />
